@@ -1,0 +1,292 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e8e8f0;min-height:100vh;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;background:rgba(10,10,15,0.9);border-bottom:0.5px solid rgba(255,255,255,0.07);}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;}
+.logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.logo-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-steps{display:flex;gap:4px;}
+.nav-step{padding:5px 14px;border-radius:99px;font-size:12px;color:rgba(255,255,255,0.35);}
+.nav-step.active{background:rgba(124,58,237,0.15);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.3);}
+.nav-step.done{color:rgba(255,255,255,0.55);}
+
+.page{max-width:900px;margin:0 auto;padding:32px 24px;}
+
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.page-sub{font-size:13px;color:rgba(255,255,255,0.35);margin-top:4px;}
+.header-right{display:flex;gap:8px;align-items:center;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;}
+.stat-card{background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px;}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.3);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.stat-val.purple{color:#a78bfa;}
+.stat-val.blue{color:#60a5fa;}
+.stat-val.teal{color:#34d399;}
+.stat-val.amber{color:#fbbf24;}
+
+.toolbar{display:flex;gap:10px;margin-bottom:20px;align-items:center;}
+.search-wrap{flex:1;position:relative;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);font-size:15px;pointer-events:none;}
+.search-input{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.09);border-radius:8px;padding:8px 12px 8px 34px;font-size:13px;color:#e8e8f0;outline:none;transition:border-color 0.2s;font-family:inherit;}
+.search-input:focus{border-color:rgba(124,58,237,0.4);}
+.search-input::placeholder{color:rgba(255,255,255,0.2);}
+.filter-btn{padding:7px 14px;border-radius:8px;font-size:12.5px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.filter-btn.active{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.3);color:#a78bfa;}
+.sort-select{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.09);border-radius:8px;padding:7px 12px;font-size:12.5px;color:rgba(255,255,255,0.5);outline:none;cursor:pointer;font-family:inherit;}
+
+.history-list{display:flex;flex-direction:column;gap:12px;}
+
+.history-card{background:rgba(255,255,255,0.02);border:0.5px solid rgba(255,255,255,0.07);border-radius:12px;overflow:hidden;transition:border-color 0.2s,background 0.2s;cursor:pointer;}
+.history-card:hover{border-color:rgba(124,58,237,0.25);background:rgba(124,58,237,0.03);}
+.history-card.expanded{border-color:rgba(124,58,237,0.3);}
+
+.card-top{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+.card-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.card-icon.pg{background:rgba(124,58,237,0.12);color:#a78bfa;}
+.card-icon.my{background:rgba(37,99,235,0.12);color:#60a5fa;}
+.card-icon.sq{background:rgba(13,148,136,0.12);color:#34d399;}
+.card-icon.bq{background:rgba(217,119,6,0.12);color:#fbbf24;}
+
+.card-main{flex:1;min-width:0;}
+.card-prompt{font-size:13.5px;font-weight:500;color:rgba(255,255,255,0.8);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.meta-pill{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.meta-pill.dialect{background:rgba(124,58,237,0.1);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.2);}
+.meta-pill.mysql{background:rgba(37,99,235,0.1);color:#60a5fa;border:0.5px solid rgba(37,99,235,0.2);}
+.meta-pill.sqlite{background:rgba(13,148,136,0.1);color:#34d399;border:0.5px solid rgba(13,148,136,0.2);}
+.meta-pill.bq{background:rgba(217,119,6,0.1);color:#fbbf24;border:0.5px solid rgba(217,119,6,0.2);}
+.meta-time{font-size:11.5px;color:rgba(255,255,255,0.25);}
+.meta-tables{font-size:11.5px;color:rgba(255,255,255,0.25);}
+
+.card-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.icon-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.15s;}
+.icon-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);}
+.icon-btn.danger:hover{background:rgba(226,75,74,0.1);color:#f09595;border-color:rgba(226,75,74,0.2);}
+.icon-btn.starred{color:#fbbf24;}
+.expand-btn{color:rgba(255,255,255,0.25);font-size:13px;transition:transform 0.2s;}
+.expanded .expand-btn{transform:rotate(180deg);}
+
+.card-expanded{border-top:0.5px solid rgba(255,255,255,0.06);padding:14px 16px;display:none;}
+.expanded .card-expanded{display:block;}
+.sql-preview{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.8;color:rgba(255,255,255,0.55);background:rgba(0,0,0,0.2);border-radius:8px;padding:12px 14px;overflow-x:auto;white-space:pre;}
+.kw{color:#c084fc;}
+.fn{color:#60a5fa;}
+.str{color:#34d399;}
+.num{color:#fb923c;}
+.cm{color:rgba(255,255,255,0.22);font-style:italic;}
+.exp-actions{display:flex;gap:8px;margin-top:12px;}
+.exp-btn{padding:6px 14px;border-radius:7px;font-size:12px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+.exp-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);}
+.exp-btn.primary{background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.25);color:#a78bfa;}
+.exp-btn.primary:hover{background:rgba(124,58,237,0.18);}
+
+.empty-state{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2);}
+.empty-state i{font-size:40px;margin-bottom:12px;display:block;}
+
+.clear-btn{padding:7px 14px;border-radius:8px;font-size:12px;background:rgba(226,75,74,0.06);border:0.5px solid rgba(226,75,74,0.15);color:rgba(226,75,74,0.6);cursor:pointer;transition:all 0.2s;}
+.clear-btn:hover{background:rgba(226,75,74,0.12);color:rgba(226,75,74,0.9);}
+</style>
+
+<h2 class="sr-only">Query history — browse, search and reuse your past generated SQL queries</h2>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-grad">SQLGenius</span>
+  </div>
+  <div class="nav-steps">
+    <div class="nav-step done">1 · Landing</div>
+    <div class="nav-step done">2 · Schema</div>
+    <div class="nav-step done">3 · Generator</div>
+    <div class="nav-step active">4 · History</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button style="padding:6px 14px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#7c3aed,#2563eb);border:none;color:#fff;cursor:pointer;font-weight:600;" onclick="sendPrompt('All 4 pages are done! What should we do next to finish the app?')">All pages done · Next steps ↗</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Query history</div>
+      <div class="page-sub" id="histSubtitle">6 queries saved this session</div>
+    </div>
+    <div class="header-right">
+      <button class="clear-btn" onclick="clearAll()"><i class="ti ti-trash" style="font-size:13px;margin-right:4px;" aria-hidden="true"></i>Clear all</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total queries</div><div class="stat-val purple" id="statTotal">6</div></div>
+    <div class="stat-card"><div class="stat-label">Starred</div><div class="stat-val amber" id="statStarred">2</div></div>
+    <div class="stat-card"><div class="stat-label">Dialects used</div><div class="stat-val blue" id="statDialects">3</div></div>
+    <div class="stat-card"><div class="stat-label">Tables queried</div><div class="stat-val teal" id="statTables">2</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="ti ti-search search-icon" aria-hidden="true"></i>
+      <input class="search-input" id="searchInput" placeholder="Search queries..." oninput="filterAndRender()">
+    </div>
+    <button class="filter-btn active" id="filterAll" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" id="filterStarred" onclick="setFilter('starred',this)">Starred</button>
+    <select class="sort-select" id="sortSelect" onchange="filterAndRender()">
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="dialect">By dialect</option>
+    </select>
+  </div>
+
+  <div class="history-list" id="historyList"></div>
+
+</div>
+
+<script>
+const DIALECT_CLASS = {PostgreSQL:'dialect',MySQL:'mysql',SQLite:'sqlite',BigQuery:'bq'};
+const ICON_CLASS = {PostgreSQL:'pg',MySQL:'my',SQLite:'sq',BigQuery:'bq'};
+
+let entries = [
+  {id:1,prompt:'Top 10 users by total revenue last 30 days',dialect:'PostgreSQL',tables:['users','orders'],time:'2 min ago',starred:true,sql:`SELECT u.name, u.email,\n  SUM(o.amount) AS total_revenue\nFROM users u\nJOIN orders o ON u.id = o.user_id\nWHERE o.created_at >= NOW() - INTERVAL '30 days'\nGROUP BY u.id, u.name, u.email\nORDER BY total_revenue DESC\nLIMIT 10;`},
+  {id:2,prompt:'Count of orders grouped by status this week',dialect:'PostgreSQL',tables:['orders'],time:'5 min ago',starred:true,sql:`SELECT status,\n  COUNT(*) AS order_count\nFROM orders\nWHERE created_at >= DATE_TRUNC('week', NOW())\nGROUP BY status\nORDER BY order_count DESC;`},
+  {id:3,prompt:'All pending orders with user name and email',dialect:'MySQL',tables:['users','orders'],time:'11 min ago',starred:false,sql:`SELECT u.name, u.email,\n  o.id AS order_id, o.amount\nFROM orders o\nINNER JOIN users u ON o.user_id = u.id\nWHERE o.status = 'pending'\nORDER BY o.created_at DESC;`},
+  {id:4,prompt:'Average order value per user sorted highest first',dialect:'PostgreSQL',tables:['users','orders'],time:'18 min ago',starred:false,sql:`SELECT u.name,\n  ROUND(AVG(o.amount), 2) AS avg_order_value\nFROM users u\nJOIN orders o ON u.id = o.user_id\nGROUP BY u.id, u.name\nORDER BY avg_order_value DESC;`},
+  {id:5,prompt:'Users who have never placed an order',dialect:'SQLite',tables:['users','orders'],time:'24 min ago',starred:false,sql:`SELECT u.id, u.name, u.email\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nWHERE o.id IS NULL\nORDER BY u.name;`},
+  {id:6,prompt:'Total revenue and order count by month this year',dialect:'BigQuery',tables:['orders'],time:'31 min ago',starred:false,sql:`SELECT\n  FORMAT_DATE('%Y-%m', created_at) AS month,\n  COUNT(*) AS order_count,\n  SUM(amount) AS total_revenue\nFROM orders\nWHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)\nGROUP BY month\nORDER BY month;`},
+];
+
+let activeFilter = 'all';
+let expandedId = null;
+
+function highlight(sql) {
+  const kws = ['SELECT','FROM','WHERE','JOIN','LEFT JOIN','INNER JOIN','ON','GROUP BY','ORDER BY','HAVING','LIMIT','COUNT','SUM','AVG','ROUND','FORMAT_DATE','DATE_TRUNC','EXTRACT','INTERVAL','NOW','CURRENT_DATE','AS','AND','OR','DESC','ASC','BY','NULL','IS NULL','IS NOT NULL'];
+  let h = sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  kws.forEach(k => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span class="kw">${k}</span>`); });
+  h = h.replace(/'([^']*)'/g, `<span class="str">'$1'</span>`);
+  h = h.replace(/\b(\d+)\b/g, `<span class="num">$1</span>`);
+  return h;
+}
+
+function updateStats(list) {
+  document.getElementById('statTotal').textContent = list.length;
+  document.getElementById('statStarred').textContent = list.filter(e=>e.starred).length;
+  document.getElementById('statDialects').textContent = new Set(list.map(e=>e.dialect)).size;
+  document.getElementById('statTables').textContent = new Set(list.flatMap(e=>e.tables)).size;
+  document.getElementById('histSubtitle').textContent = `${list.length} quer${list.length!==1?'ies':'y'} saved this session`;
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterAndRender();
+}
+
+function filterAndRender() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let list = entries.filter(e => {
+    if (activeFilter === 'starred' && !e.starred) return false;
+    if (q && !e.prompt.toLowerCase().includes(q) && !e.sql.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (sort === 'oldest') list = [...list].reverse();
+  if (sort === 'dialect') list = [...list].sort((a,b)=>a.dialect.localeCompare(b.dialect));
+  updateStats(list);
+  renderList(list);
+}
+
+function renderList(list) {
+  const container = document.getElementById('historyList');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><i class="ti ti-history" aria-hidden="true"></i><div style="font-size:15px;color:rgba(255,255,255,0.35);font-weight:500;">No queries found</div><div style="font-size:13px;margin-top:4px;">Try a different search or filter</div></div>`;
+    return;
+  }
+  container.innerHTML = list.map(e => `
+    <div class="history-card ${expandedId===e.id?'expanded':''}" id="card-${e.id}" onclick="toggleExpand(${e.id})">
+      <div class="card-top">
+        <div class="card-icon ${ICON_CLASS[e.dialect]||'pg'}">
+          <i class="ti ti-database" aria-hidden="true"></i>
+        </div>
+        <div class="card-main">
+          <div class="card-prompt">${e.prompt}</div>
+          <div class="card-meta">
+            <span class="meta-pill ${DIALECT_CLASS[e.dialect]||'dialect'}">${e.dialect}</span>
+            <span class="meta-tables"><i class="ti ti-table" style="font-size:11px;margin-right:3px;" aria-hidden="true"></i>${e.tables.join(', ')}</span>
+            <span class="meta-time"><i class="ti ti-clock" style="font-size:11px;margin-right:3px;" aria-hidden="true"></i>${e.time}</span>
+          </div>
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn ${e.starred?'starred':''}" onclick="toggleStar(${e.id})" aria-label="Star query">
+            <i class="ti ti-star" style="font-size:13px;" aria-hidden="true"></i>
+          </button>
+          <button class="icon-btn" onclick="copyEntry(${e.id})" aria-label="Copy SQL">
+            <i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i>
+          </button>
+          <button class="icon-btn" onclick="downloadEntry(${e.id})" aria-label="Download SQL">
+            <i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i>
+          </button>
+          <button class="icon-btn danger" onclick="deleteEntry(${e.id})" aria-label="Delete query">
+            <i class="ti ti-trash" style="font-size:13px;" aria-hidden="true"></i>
+          </button>
+          <i class="ti ti-chevron-down expand-btn" aria-hidden="true"></i>
+        </div>
+      </div>
+      <div class="card-expanded">
+        <div class="sql-preview">${highlight(e.sql)}</div>
+        <div class="exp-actions">
+          <button class="exp-btn primary" onclick="reuseInGenerator(${e.id})"><i class="ti ti-player-play" style="font-size:12px;" aria-hidden="true"></i> Reuse in generator</button>
+          <button class="exp-btn" onclick="copyEntry(${e.id})"><i class="ti ti-copy" style="font-size:12px;" aria-hidden="true"></i> Copy SQL</button>
+          <button class="exp-btn" onclick="downloadEntry(${e.id})"><i class="ti ti-download" style="font-size:12px;" aria-hidden="true"></i> Export .sql</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleExpand(id) {
+  expandedId = expandedId === id ? null : id;
+  filterAndRender();
+}
+
+function toggleStar(id) {
+  const e = entries.find(x=>x.id===id);
+  if(e) { e.starred = !e.starred; filterAndRender(); }
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e=>e.id!==id);
+  if(expandedId===id) expandedId=null;
+  filterAndRender();
+}
+
+function copyEntry(id) {
+  const e = entries.find(x=>x.id===id);
+  if(e) navigator.clipboard.writeText(e.sql);
+}
+
+function downloadEntry(id) {
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  const blob = new Blob([e.sql],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `query_${id}.sql`;
+  a.click();
+}
+
+function reuseInGenerator(id) {
+  const e = entries.find(x=>x.id===id);
+  if(e) sendPrompt(`Reuse this query in the generator: "${e.prompt}" (dialect: ${e.dialect})`);
+}
+
+function clearAll() {
+  if(confirm('Clear all history?')) { entries=[]; expandedId=null; filterAndRender(); }
+}
+
+filterAndRender();
+</script>
