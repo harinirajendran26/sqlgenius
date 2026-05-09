@@ -1,0 +1,504 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8f0;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(120, 80, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120, 80, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.18;
+    animation: orb-drift 12s ease-in-out infinite alternate;
+  }
+  .glow-orb.purple { width: 480px; height: 480px; background: #7c3aed; top: -100px; left: -80px; }
+  .glow-orb.blue   { width: 360px; height: 360px; background: #2563eb; top: 40%; right: -60px; animation-delay: -4s; }
+  .glow-orb.teal   { width: 280px; height: 280px; background: #0d9488; bottom: 60px; left: 30%; animation-delay: -8s; }
+
+  @keyframes orb-drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(24px, 32px) scale(1.08); }
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 60px;
+    background: rgba(10, 10, 15, 0.7);
+    backdrop-filter: blur(16px);
+    border-bottom: 0.5px solid rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+  }
+  .nav-logo .icon-wrap {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .logo-text { background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .nav-links { display: flex; gap: 28px; font-size: 13.5px; color: rgba(255,255,255,0.55); }
+  .nav-links a { cursor: pointer; transition: color 0.2s; }
+  .nav-links a:hover { color: rgba(255,255,255,0.9); }
+
+  .nav-cta {
+    padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    color: #fff; cursor: pointer; border: none;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .page { position: relative; z-index: 1; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 80px 32px 60px;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(124, 58, 237, 0.12);
+    border: 0.5px solid rgba(124, 58, 237, 0.35);
+    border-radius: 99px;
+    padding: 5px 14px; font-size: 12.5px; color: #a78bfa;
+    margin-bottom: 28px;
+    animation: fade-in-up 0.6s ease both;
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; animation: pulse 1.8s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero-title {
+    font-size: 58px; font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+    margin-bottom: 22px;
+    animation: fade-in-up 0.6s 0.1s ease both;
+  }
+  .hero-title .line-gray { color: rgba(255,255,255,0.25); }
+  .hero-title .line-grad {
+    background: linear-gradient(90deg, #a78bfa 0%, #60a5fa 50%, #34d399 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    font-size: 17px; color: rgba(255,255,255,0.45); line-height: 1.65;
+    max-width: 500px; margin-bottom: 40px;
+    animation: fade-in-up 0.6s 0.2s ease both;
+  }
+
+  .hero-btns {
+    display: flex; gap: 12px; justify-content: center;
+    animation: fade-in-up 0.6s 0.3s ease both;
+    margin-bottom: 64px;
+  }
+
+  .btn-primary {
+    padding: 12px 28px; border-radius: 10px; font-size: 14.5px; font-weight: 600;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    color: #fff; cursor: pointer; border: none;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 32px rgba(124, 58, 237, 0.5); }
+
+  .btn-secondary {
+    padding: 12px 28px; border-radius: 10px; font-size: 14.5px; font-weight: 500;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.75); cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+
+  /* CODE PREVIEW */
+  .code-preview {
+    width: 100%; max-width: 680px;
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 14px; overflow: hidden;
+    animation: fade-in-up 0.6s 0.45s ease both;
+    text-align: left;
+  }
+
+  .code-header {
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dot-btn { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-btn.r { background: #ff5f57; }
+  .dot-btn.y { background: #ffbd2e; }
+  .dot-btn.g { background: #28c840; }
+
+  .code-tabs {
+    margin-left: 12px; display: flex; gap: 0;
+  }
+  .code-tab {
+    padding: 3px 14px; font-size: 11.5px; border-radius: 5px;
+    cursor: pointer; color: rgba(255,255,255,0.35);
+    transition: all 0.2s;
+  }
+  .code-tab.active { background: rgba(124,58,237,0.2); color: #a78bfa; }
+
+  .code-body { padding: 20px 22px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.8; }
+
+  .nl-input {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px 14px;
+    color: rgba(255,255,255,0.6); font-size: 13px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .nl-input .cursor { display: inline-block; width: 2px; height: 14px; background: #a78bfa; animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 2px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .kw { color: #c084fc; }
+  .fn { color: #60a5fa; }
+  .str { color: #34d399; }
+  .cm { color: rgba(255,255,255,0.25); font-style: italic; }
+  .num { color: #fb923c; }
+  .op { color: rgba(255,255,255,0.5); }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* FEATURES */
+  .section {
+    padding: 80px 32px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: #a78bfa;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 34px; font-weight: 800; letter-spacing: -1px;
+    color: rgba(255,255,255,0.9); margin-bottom: 10px;
+  }
+  .section-sub { font-size: 15px; color: rgba(255,255,255,0.4); margin-bottom: 44px; }
+
+  .features-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+
+  .feat-card {
+    background: rgba(255,255,255,0.03);
+    border: 0.5px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 22px;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s;
+    cursor: default;
+  }
+  .feat-card:hover {
+    border-color: rgba(124, 58, 237, 0.3);
+    background: rgba(124, 58, 237, 0.05);
+    transform: translateY(-3px);
+  }
+
+  .feat-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 14px;
+  }
+  .feat-icon.purple { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+  .feat-icon.blue   { background: rgba(37, 99, 235, 0.15);  color: #60a5fa; }
+  .feat-icon.teal   { background: rgba(13, 148, 136, 0.15); color: #2dd4bf; }
+  .feat-icon.amber  { background: rgba(217, 119, 6, 0.15);  color: #fbbf24; }
+
+  .feat-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 7px; }
+  .feat-desc  { font-size: 12.5px; color: rgba(255,255,255,0.38); line-height: 1.65; }
+
+  /* DIALECTS */
+  .dialects {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center; margin-top: 40px;
+  }
+  .dialect-pill {
+    padding: 6px 16px; border-radius: 99px; font-size: 12.5px; font-weight: 500;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.03);
+    transition: all 0.2s; cursor: pointer;
+  }
+  .dialect-pill:hover { border-color: rgba(124,58,237,0.4); color: #a78bfa; background: rgba(124,58,237,0.08); }
+  .dialect-pill.active { border-color: rgba(124,58,237,0.5); color: #a78bfa; background: rgba(124,58,237,0.12); }
+
+  /* HOW IT WORKS */
+  .steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .steps::before {
+    content: ''; position: absolute;
+    left: 19px; top: 28px; bottom: 28px; width: 1px;
+    background: linear-gradient(to bottom, #7c3aed44, #2563eb44, transparent);
+  }
+  .step {
+    display: flex; gap: 22px; padding: 20px 0;
+    transition: transform 0.2s;
+  }
+  .step:hover { transform: translateX(4px); }
+  .step-num {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    border: 1px solid rgba(124,58,237,0.4);
+    background: rgba(124,58,237,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #a78bfa;
+    position: relative; z-index: 1;
+  }
+  .step-content .step-title { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 5px; }
+  .step-content .step-desc  { font-size: 13px; color: rgba(255,255,255,0.38); line-height: 1.6; }
+
+  /* CTA BANNER */
+  .cta-banner {
+    max-width: 800px; margin: 0 auto 80px;
+    padding: 48px 40px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(37,99,235,0.08));
+    border: 0.5px solid rgba(124,58,237,0.2);
+    border-radius: 20px;
+    text-align: center;
+  }
+  .cta-banner h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 10px; }
+  .cta-banner p  { font-size: 14.5px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }
+
+  footer {
+    border-top: 0.5px solid rgba(255,255,255,0.06);
+    padding: 24px 48px;
+    text-align: center;
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .typing-text { display: inline; }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow-orb purple"></div>
+<div class="glow-orb blue"></div>
+<div class="glow-orb teal"></div>
+
+<nav>
+  <div class="nav-logo">
+    <div class="icon-wrap">⚡</div>
+    <span class="logo-text">SQLGenius</span>
+  </div>
+  <div class="nav-links">
+    <a>Features</a>
+    <a>How it works</a>
+    <a>Dialects</a>
+    <a>Docs</a>
+  </div>
+  <button class="nav-cta" onclick="sendPrompt('Start building the Schema Builder page now!')">Try free →</button>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">
+      <span class="dot"></span>
+      AI-powered · No SQL knowledge needed
+    </div>
+
+    <h1 class="hero-title">
+      <span class="line-gray">Write SQL in</span><br>
+      <span class="line-grad">plain English</span>
+    </h1>
+
+    <p class="hero-sub">
+      Describe your tables, type what you need — SQLGenius writes the perfect query for you. Instantly.
+    </p>
+
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="sendPrompt('Start building the Schema Builder page now!')">Start building →</button>
+      <button class="btn-secondary">Watch demo</button>
+    </div>
+
+    <div class="code-preview">
+      <div class="code-header">
+        <div class="dot-btn r"></div>
+        <div class="dot-btn y"></div>
+        <div class="dot-btn g"></div>
+        <div class="code-tabs">
+          <div class="code-tab active">Query Generator</div>
+          <div class="code-tab">Output</div>
+        </div>
+      </div>
+      <div class="code-body">
+        <div class="nl-input">
+          💬 &nbsp;<span id="typed-text"></span><span class="cursor"></span>
+        </div>
+        <div id="sql-output">
+          <div><span class="cm">-- Generated SQL · PostgreSQL</span></div>
+          <div><span class="kw">SELECT</span></div>
+          <div>&nbsp;&nbsp;<span class="fn">u.name</span><span class="op">,</span> <span class="fn">u.email</span><span class="op">,</span></div>
+          <div>&nbsp;&nbsp;<span class="fn">COUNT</span><span class="op">(</span><span class="fn">o.id</span><span class="op">)</span> <span class="kw">AS</span> <span class="str">total_orders</span><span class="op">,</span></div>
+          <div>&nbsp;&nbsp;<span class="fn">SUM</span><span class="op">(</span><span class="fn">o.amount</span><span class="op">)</span> <span class="kw">AS</span> <span class="str">revenue</span></div>
+          <div><span class="kw">FROM</span> <span class="fn">users</span> <span class="fn">u</span></div>
+          <div><span class="kw">JOIN</span> <span class="fn">orders</span> <span class="fn">o</span> <span class="kw">ON</span> <span class="fn">u.id</span> <span class="op">=</span> <span class="fn">o.user_id</span></div>
+          <div><span class="kw">WHERE</span> <span class="fn">o.created_at</span> <span class="op">&gt;=</span> <span class="str">NOW()</span> <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">'30 days'</span></div>
+          <div><span class="kw">GROUP BY</span> <span class="fn">u.id</span><span class="op">,</span> <span class="fn">u.name</span><span class="op">,</span> <span class="fn">u.email</span></div>
+          <div><span class="kw">ORDER BY</span> <span class="str">revenue</span> <span class="kw">DESC</span></div>
+          <div><span class="kw">LIMIT</span> <span class="num">10</span><span class="op">;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section">
+    <div class="section-label">What you get</div>
+    <div class="section-title">Everything you need</div>
+    <div class="section-sub">Built for engineers who want results, not syntax headaches.</div>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon purple"><i class="ti ti-sparkles"></i></div>
+        <div class="feat-title">AI-powered generation</div>
+        <div class="feat-desc">Claude understands your schema and intent to write accurate, optimised SQL every time.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon blue"><i class="ti ti-table"></i></div>
+        <div class="feat-title">Visual schema builder</div>
+        <div class="feat-desc">Define tables, columns, types and relationships with a drag-and-drop interface.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon teal"><i class="ti ti-bulb"></i></div>
+        <div class="feat-title">Plain English explanation</div>
+        <div class="feat-desc">Every query comes with a line-by-line breakdown in plain English so you actually learn.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon amber"><i class="ti ti-history"></i></div>
+        <div class="feat-title">Query history</div>
+        <div class="feat-desc">Save, revisit and compare past generations. Export as .sql files with one click.</div>
+      </div>
+    </div>
+
+    <div class="dialects">
+      <div class="dialect-pill active">PostgreSQL</div>
+      <div class="dialect-pill">MySQL</div>
+      <div class="dialect-pill">SQLite</div>
+      <div class="dialect-pill">BigQuery</div>
+      <div class="dialect-pill">SQL Server</div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" style="padding-top: 20px;">
+    <div class="section-label">Process</div>
+    <div class="section-title">Three steps to your query</div>
+    <div class="section-sub">From schema to SQL in under 10 seconds.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Define your schema</div>
+          <div class="step-desc">Add your tables, column names, data types and relationships using the visual builder — no raw SQL needed.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Describe what you want</div>
+          <div class="step-desc">Type a plain English description like "Show me the top 10 customers by revenue last month" and hit generate.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Get your SQL + explanation</div>
+          <div class="step-desc">Receive syntax-highlighted SQL with a full plain-English explanation of every clause. Copy or export instantly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <div class="cta-banner">
+    <h2>Ready to stop guessing SQL?</h2>
+    <p>Free to use. No signup needed. Works with any schema.</p>
+    <button class="btn-primary" onclick="sendPrompt('Start building the Schema Builder page now!')">Get started for free →</button>
+  </div>
+
+  <footer>
+    © 2025 SQLGenius · Built with Claude AI · Open Source
+  </footer>
+
+</div>
+
+<script>
+  const phrases = [
+    "Show top 10 customers by revenue last 30 days",
+    "Find all orders where status is pending",
+    "Count users who signed up this week",
+    "Get average order value by country",
+  ];
+  let pi = 0, ci = 0, deleting = false;
+  const el = document.getElementById('typed-text');
+
+  function typeWriter() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      el.textContent = phrase.slice(0, ci + 1);
+      ci++;
+      if (ci === phrase.length) { setTimeout(() => { deleting = true; typeWriter(); }, 2200); return; }
+    } else {
+      el.textContent = phrase.slice(0, ci - 1);
+      ci--;
+      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+    }
+    setTimeout(typeWriter, deleting ? 38 : 58);
+  }
+  typeWriter();
+
+  document.querySelectorAll('.dialect-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.dialect-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
