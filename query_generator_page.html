@@ -1,0 +1,363 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e8e8f0;min-height:100vh;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;background:rgba(10,10,15,0.9);border-bottom:0.5px solid rgba(255,255,255,0.07);}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;}
+.logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.logo-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-steps{display:flex;gap:4px;}
+.nav-step{padding:5px 14px;border-radius:99px;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;}
+.nav-step.active{background:rgba(124,58,237,0.15);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.3);}
+.nav-step.done{color:rgba(255,255,255,0.55);}
+
+.layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 56px);overflow:hidden;}
+
+.panel{display:flex;flex-direction:column;overflow:hidden;}
+.panel-left{border-right:0.5px solid rgba(255,255,255,0.06);}
+
+.panel-header{padding:16px 20px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-title{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.3);}
+.panel-actions{display:flex;gap:6px;align-items:center;}
+
+.schema-summary{padding:14px 20px;border-bottom:0.5px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.schema-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.schema-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);font-size:11.5px;color:rgba(255,255,255,0.5);cursor:default;}
+.chip-dot{width:6px;height:6px;border-radius:50%;}
+
+.input-area{flex:1;display:flex;flex-direction:column;padding:20px;gap:14px;overflow-y:auto;}
+
+.dialect-row{display:flex;gap:6px;flex-wrap:wrap;}
+.dialect-btn{padding:5px 12px;border-radius:6px;font-size:12px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.15s;}
+.dialect-btn.active{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.35);color:#a78bfa;}
+
+.nl-label{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:6px;}
+.nl-textarea{width:100%;min-height:100px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#e8e8f0;resize:vertical;outline:none;font-family:inherit;line-height:1.6;transition:border-color 0.2s;}
+.nl-textarea:focus{border-color:rgba(124,58,237,0.4);}
+.nl-textarea::placeholder{color:rgba(255,255,255,0.2);}
+
+.examples-label{font-size:11.5px;color:rgba(255,255,255,0.25);margin-bottom:7px;}
+.examples-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.example-btn{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);border:0.5px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.4);font-size:11.5px;text-align:left;cursor:pointer;transition:all 0.2s;line-height:1.4;}
+.example-btn:hover{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.25);color:rgba(255,255,255,0.7);}
+
+.generate-btn{width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#7c3aed,#2563eb);border:none;color:#fff;cursor:pointer;transition:transform 0.15s,opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.generate-btn:hover{transform:translateY(-1px);}
+.generate-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+.panel-right{background:rgba(255,255,255,0.01);}
+
+.output-wrap{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.output-wrap::-webkit-scrollbar{width:3px;}
+.output-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+
+.empty-output{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,0.18);text-align:center;padding:40px;}
+
+.code-card{background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;}
+.code-card-header{padding:10px 16px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;}
+.code-card-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:6px;}
+.dialect-tag{padding:2px 8px;border-radius:4px;background:rgba(124,58,237,0.15);color:#a78bfa;font-size:10px;font-weight:600;letter-spacing:0.5px;}
+.copy-btn{padding:4px 10px;border-radius:6px;font-size:11.5px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px;}
+.copy-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);}
+.copy-btn.copied{color:#34d399;border-color:rgba(52,211,153,0.3);}
+
+.sql-block{padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;overflow-x:auto;}
+.sql-block::-webkit-scrollbar{height:3px;}
+.sql-block::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+
+.kw{color:#c084fc;}
+.fn{color:#60a5fa;}
+.str{color:#34d399;}
+.cm{color:rgba(255,255,255,0.22);font-style:italic;}
+.num{color:#fb923c;}
+.op{color:rgba(255,255,255,0.4);}
+
+.explain-card{background:rgba(255,255,255,0.02);border:0.5px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;}
+.explain-header{padding:10px 16px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:6px;}
+.explain-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.explain-line{display:flex;gap:10px;align-items:flex-start;}
+.explain-clause{flex-shrink:0;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,0.12);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.2);min-width:72px;text-align:center;}
+.explain-text{font-size:12.5px;color:rgba(255,255,255,0.5);line-height:1.55;}
+
+.warning-card{background:rgba(251,191,36,0.05);border:0.5px solid rgba(251,191,36,0.2);border-radius:10px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(251,191,36,0.7);}
+
+.loading-dots{display:flex;gap:5px;align-items:center;padding:20px;}
+.dot{width:7px;height:7px;border-radius:50%;background:#7c3aed;animation:bounce 1.2s ease infinite;}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+.action-row{display:flex;gap:8px;padding:0 20px 16px;}
+.action-btn{flex:1;padding:8px;border-radius:8px;font-size:12.5px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.action-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);}
+</style>
+
+<h2 class="sr-only">Query generator — describe what you need and get SQL instantly</h2>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-grad">SQLGenius</span>
+  </div>
+  <div class="nav-steps">
+    <div class="nav-step done">1 · Landing</div>
+    <div class="nav-step done">2 · Schema</div>
+    <div class="nav-step active">3 · Generator</div>
+    <div class="nav-step">4 · History</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button style="padding:6px 14px;border-radius:8px;font-size:12px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);cursor:pointer;" onclick="sendPrompt('Build Step 4 — the Query History page now!')">History →</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <div class="panel panel-left">
+    <div class="panel-header">
+      <span class="panel-title">Input</span>
+      <div class="panel-actions">
+        <span style="font-size:11.5px;color:rgba(255,255,255,0.25);">Dialect:</span>
+        <div class="dialect-row" id="dialectRow">
+          <button class="dialect-btn active" onclick="setDialect('PostgreSQL',this)">PostgreSQL</button>
+          <button class="dialect-btn" onclick="setDialect('MySQL',this)">MySQL</button>
+          <button class="dialect-btn" onclick="setDialect('SQLite',this)">SQLite</button>
+          <button class="dialect-btn" onclick="setDialect('BigQuery',this)">BigQuery</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="schema-summary">
+      <div class="schema-chips" id="schemaChips">
+        <div class="schema-chip"><div class="chip-dot" style="background:#a78bfa"></div>users · 4 cols</div>
+        <div class="schema-chip"><div class="chip-dot" style="background:#60a5fa"></div>orders · 5 cols</div>
+        <div class="schema-chip" style="cursor:pointer;border-style:dashed;" onclick="sendPrompt('Go back to the Schema Builder page')"><i class="ti ti-edit" style="font-size:12px;" aria-hidden="true"></i> Edit schema</div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div>
+        <div class="nl-label">Describe what you want in plain English</div>
+        <textarea class="nl-textarea" id="nlInput" placeholder="e.g. Show me the top 10 customers by total order value in the last 30 days, including their email..."></textarea>
+      </div>
+
+      <div>
+        <div class="examples-label">Try an example</div>
+        <div class="examples-grid">
+          <button class="example-btn" onclick="setExample(this)">Top 10 users by total revenue last 30 days</button>
+          <button class="example-btn" onclick="setExample(this)">Count of orders grouped by status this week</button>
+          <button class="example-btn" onclick="setExample(this)">All pending orders with user name and email</button>
+          <button class="example-btn" onclick="setExample(this)">Average order value per user, sorted highest first</button>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="genBtn" onclick="generate()">
+        <i class="ti ti-sparkles" aria-hidden="true"></i>
+        Generate SQL
+      </button>
+    </div>
+  </div>
+
+  <div class="panel panel-right">
+    <div class="panel-header">
+      <span class="panel-title">Output</span>
+      <div class="panel-actions" id="outputActions" style="display:none;">
+        <button class="copy-btn" id="copyBtn" onclick="copySQL()">
+          <i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy
+        </button>
+        <button class="copy-btn" onclick="downloadSQL()">
+          <i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i> Export .sql
+        </button>
+      </div>
+    </div>
+
+    <div class="output-wrap" id="outputWrap">
+      <div class="empty-output" id="emptyOutput">
+        <i class="ti ti-terminal-2" style="font-size:36px;" aria-hidden="true"></i>
+        <div style="font-size:14px;color:rgba(255,255,255,0.3);font-weight:500;">Your SQL will appear here</div>
+        <div style="font-size:12.5px;">Describe your query and hit generate</div>
+      </div>
+    </div>
+
+    <div class="action-row" id="actionRow" style="display:none;">
+      <button class="action-btn" onclick="saveToHistory()"><i class="ti ti-bookmark" style="font-size:14px;" aria-hidden="true"></i> Save to history</button>
+      <button class="action-btn" onclick="generate()"><i class="ti ti-refresh" style="font-size:14px;" aria-hidden="true"></i> Regenerate</button>
+      <button class="action-btn" onclick="sendPrompt('Build Step 4 — the Query History page now!')"><i class="ti ti-history" style="font-size:14px;" aria-hidden="true"></i> View history ↗</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentDialect = 'PostgreSQL';
+let currentSQL = '';
+let history = [];
+
+const SCHEMA = `Tables:
+- users: id (INT, PK), name (VARCHAR), email (VARCHAR), created_at (TIMESTAMP)
+- orders: id (INT, PK), user_id (INT), amount (DECIMAL), status (VARCHAR), created_at (TIMESTAMP)
+Relationship: orders.user_id → users.id`;
+
+function setDialect(d, btn) {
+  currentDialect = d;
+  document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setExample(btn) {
+  document.getElementById('nlInput').value = btn.textContent;
+}
+
+async function generate() {
+  const prompt = document.getElementById('nlInput').value.trim();
+  if (!prompt) { document.getElementById('nlInput').focus(); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> Generating...';
+
+  document.getElementById('emptyOutput').style.display = 'none';
+  document.getElementById('outputActions').style.display = 'none';
+  document.getElementById('actionRow').style.display = 'none';
+
+  const wrap = document.getElementById('outputWrap');
+  wrap.innerHTML = '<div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `You are a SQL expert. Given a database schema and a natural language request, generate SQL and explain it.
+
+${SCHEMA}
+
+Dialect: ${currentDialect}
+Request: ${prompt}
+
+Respond ONLY with valid JSON in this exact format, no markdown, no preamble:
+{
+  "sql": "the full SQL query here",
+  "clauses": [
+    {"clause": "SELECT", "explanation": "what this part does"},
+    {"clause": "FROM", "explanation": "what this part does"},
+    {"clause": "JOIN", "explanation": "what this part does"},
+    {"clause": "WHERE", "explanation": "what this part does"},
+    {"clause": "GROUP BY", "explanation": "what this part does"},
+    {"clause": "ORDER BY", "explanation": "what this part does"},
+    {"clause": "LIMIT", "explanation": "what this part does"}
+  ],
+  "warning": "optional short warning if query is ambiguous or could be slow, else empty string"
+}`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text;
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    currentSQL = parsed.sql;
+    renderOutput(parsed);
+  } catch(e) {
+    wrap.innerHTML = `<div style="padding:20px;font-size:13px;color:rgba(226,75,74,0.8);background:rgba(226,75,74,0.06);border:0.5px solid rgba(226,75,74,0.2);border-radius:10px;margin:4px;">
+      <i class="ti ti-alert-circle" style="font-size:15px;margin-right:6px;" aria-hidden="true"></i>
+      Could not generate SQL. Check your API connection and try again.
+    </div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-sparkles" aria-hidden="true"></i> Generate SQL';
+}
+
+function syntaxHighlight(sql) {
+  const keywords = ['SELECT','FROM','WHERE','JOIN','LEFT JOIN','RIGHT JOIN','INNER JOIN','ON','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','INSERT','UPDATE','DELETE','INTO','VALUES','SET','AS','AND','OR','NOT','IN','EXISTS','BETWEEN','LIKE','IS NULL','IS NOT NULL','DISTINCT','COUNT','SUM','AVG','MAX','MIN','INTERVAL','NOW','DESC','ASC','BY'];
+  let html = sql;
+  keywords.forEach(kw => {
+    const re = new RegExp(`\\b${kw}\\b`, 'g');
+    html = html.replace(re, `<span class="kw">${kw}</span>`);
+  });
+  html = html.replace(/'([^']*)'/g, `<span class="str">'$1'</span>`);
+  html = html.replace(/\b(\d+)\b/g, `<span class="num">$1</span>`);
+  html = html.replace(/--.*$/gm, m => `<span class="cm">${m}</span>`);
+  return html;
+}
+
+function renderOutput(data) {
+  const wrap = document.getElementById('outputWrap');
+  const filtered = data.clauses.filter(c => data.sql.toUpperCase().includes(c.clause.replace(' ','\\s+')));
+
+  wrap.innerHTML = `
+    <div class="code-card">
+      <div class="code-card-header">
+        <div class="code-card-title">
+          <i class="ti ti-code" style="font-size:13px;" aria-hidden="true"></i>
+          Generated SQL
+          <span class="dialect-tag">${currentDialect}</span>
+        </div>
+      </div>
+      <div class="sql-block">${syntaxHighlight(data.sql)}</div>
+    </div>
+
+    ${data.warning ? `
+    <div class="warning-card">
+      <i class="ti ti-alert-triangle" style="font-size:15px;flex-shrink:0;" aria-hidden="true"></i>
+      <span>${data.warning}</span>
+    </div>` : ''}
+
+    <div class="explain-card">
+      <div class="explain-header">
+        <i class="ti ti-bulb" style="font-size:13px;" aria-hidden="true"></i>
+        Plain English breakdown
+      </div>
+      <div class="explain-body">
+        ${filtered.map(c => `
+          <div class="explain-line">
+            <span class="explain-clause">${c.clause}</span>
+            <span class="explain-text">${c.explanation}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('outputActions').style.display = 'flex';
+  document.getElementById('actionRow').style.display = 'flex';
+}
+
+function copySQL() {
+  if (!currentSQL) return;
+  navigator.clipboard.writeText(currentSQL).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check" style="font-size:13px;" aria-hidden="true"></i> Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy';
+    }, 2000);
+  });
+}
+
+function downloadSQL() {
+  if (!currentSQL) return;
+  const blob = new Blob([currentSQL], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'query.sql';
+  a.click();
+}
+
+function saveToHistory() {
+  const prompt = document.getElementById('nlInput').value.trim();
+  history.push({ prompt, sql: currentSQL, dialect: currentDialect, time: new Date().toLocaleTimeString() });
+  const btn = event.target.closest('.action-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check" style="font-size:14px;" aria-hidden="true"></i> Saved!';
+  btn.style.color = '#34d399';
+  setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+}
+</script>
