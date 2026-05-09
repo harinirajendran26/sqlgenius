@@ -1,0 +1,318 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e8e8f0;min-height:100vh;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;background:rgba(10,10,15,0.85);border-bottom:0.5px solid rgba(255,255,255,0.07);}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;}
+.logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.logo-grad{background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-steps{display:flex;gap:4px;}
+.nav-step{padding:5px 14px;border-radius:99px;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;transition:all 0.2s;}
+.nav-step.active{background:rgba(124,58,237,0.15);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.3);}
+.nav-step.done{color:rgba(255,255,255,0.55);}
+.nav-actions{display:flex;gap:8px;}
+.btn-ghost{padding:6px 16px;border-radius:8px;font-size:12.5px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s;}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);}
+.btn-purple{padding:6px 16px;border-radius:8px;font-size:12.5px;background:linear-gradient(135deg,#7c3aed,#2563eb);border:none;color:#fff;cursor:pointer;font-weight:600;transition:transform 0.15s;}
+.btn-purple:hover{transform:translateY(-1px);}
+
+.layout{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 56px);overflow:hidden;}
+
+.sidebar{background:rgba(255,255,255,0.02);border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-header{padding:16px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+.sidebar-title{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:10px;}
+.btn-add-table{width:100%;padding:8px;border-radius:8px;background:rgba(124,58,237,0.1);border:0.5px dashed rgba(124,58,237,0.35);color:#a78bfa;font-size:13px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-add-table:hover{background:rgba(124,58,237,0.18);}
+
+.table-list{flex:1;overflow-y:auto;padding:8px;}
+.table-list::-webkit-scrollbar{width:3px;}
+.table-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+.table-item{padding:9px 12px;border-radius:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;border:0.5px solid transparent;}
+.table-item:hover{background:rgba(255,255,255,0.04);}
+.table-item.active{background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.25);}
+.table-item-left{display:flex;align-items:center;gap:8px;}
+.table-dot{width:8px;height:8px;border-radius:50%;}
+.table-name{font-size:13px;font-weight:500;}
+.table-cols{font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px;}
+.table-del{opacity:0;font-size:14px;color:rgba(255,255,255,0.3);cursor:pointer;transition:opacity 0.2s;background:none;border:none;padding:2px 4px;}
+.table-item:hover .table-del{opacity:1;}
+
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.main-header{padding:16px 24px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;}
+.table-title-wrap{display:flex;align-items:center;gap:10px;}
+.table-badge{width:10px;height:10px;border-radius:50%;}
+.table-heading{font-size:16px;font-weight:600;}
+.col-count{font-size:12px;color:rgba(255,255,255,0.3);margin-left:4px;}
+.header-actions{display:flex;gap:8px;}
+
+.col-table-wrap{flex:1;overflow-y:auto;padding:24px;}
+.col-table-wrap::-webkit-scrollbar{width:3px;}
+.col-table-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+
+.col-table{width:100%;border-collapse:collapse;}
+.col-table th{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 12px 12px;text-align:left;}
+.col-table td{padding:4px 6px;vertical-align:middle;}
+.col-row{border-radius:8px;transition:background 0.15s;}
+.col-row:hover{background:rgba(255,255,255,0.03);}
+
+.col-input{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 10px;font-size:13px;color:#e8e8f0;width:100%;outline:none;transition:border-color 0.2s;font-family:inherit;}
+.col-input:focus{border-color:rgba(124,58,237,0.4);}
+.col-select{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 10px;font-size:12.5px;color:#e8e8f0;outline:none;cursor:pointer;font-family:inherit;}
+.col-select:focus{border-color:rgba(124,58,237,0.4);}
+
+.pk-toggle{width:32px;height:18px;border-radius:9px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.pk-toggle.on{background:#7c3aed;}
+.pk-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.pk-toggle.on::after{transform:translateX(14px);}
+
+.nn-toggle{width:32px;height:18px;border-radius:9px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;position:relative;transition:background 0.2s;}
+.nn-toggle.on{background:#0d9488;}
+.nn-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.nn-toggle.on::after{transform:translateX(14px);}
+
+.pk-badge{background:rgba(124,58,237,0.15);color:#a78bfa;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;border:0.5px solid rgba(124,58,237,0.3);}
+.del-col-btn{background:none;border:none;color:rgba(255,255,255,0.2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px;transition:all 0.2s;}
+.del-col-btn:hover{color:#f09595;background:rgba(226,75,74,0.1);}
+
+.add-col-row td{padding:8px 6px;}
+.btn-add-col{background:none;border:0.5px dashed rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.3);font-size:12.5px;padding:7px 14px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+.btn-add-col:hover{border-color:rgba(124,58,237,0.3);color:#a78bfa;background:rgba(124,58,237,0.06);}
+
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,0.2);text-align:center;padding:40px;}
+.empty-icon{font-size:40px;margin-bottom:4px;}
+.empty-title{font-size:15px;font-weight:500;color:rgba(255,255,255,0.4);}
+.empty-sub{font-size:13px;}
+
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;border:0.5px solid rgba(124,58,237,0.3);border-radius:10px;padding:10px 18px;font-size:13px;color:#a78bfa;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}
+</style>
+
+<h2 class="sr-only">Schema builder — define your database tables and columns</h2>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-grad">SQLGenius</span>
+  </div>
+  <div class="nav-steps">
+    <div class="nav-step done">1 · Landing</div>
+    <div class="nav-step active">2 · Schema</div>
+    <div class="nav-step">3 · Generator</div>
+    <div class="nav-step">4 · History</div>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-ghost" onclick="clearAll()">Clear all</button>
+    <button class="btn-purple" onclick="goToGenerator()">Generate SQL ↗</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Tables</div>
+      <button class="btn-add-table" onclick="addTable()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Add table
+      </button>
+    </div>
+    <div class="table-list" id="tableList"></div>
+  </div>
+
+  <div class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon"><i class="ti ti-table" style="font-size:40px;color:rgba(255,255,255,0.15)"></i></div>
+      <div class="empty-title">No table selected</div>
+      <div class="empty-sub">Add a table from the sidebar to get started</div>
+    </div>
+    <div id="tableEditor" style="display:none;flex-direction:column;height:100%;">
+      <div class="main-header">
+        <div class="table-title-wrap">
+          <div class="table-badge" id="activeBadge"></div>
+          <input id="tableNameInput" class="col-input" style="width:180px;font-size:15px;font-weight:600;" placeholder="Table name" oninput="renameActiveTable(this.value)">
+          <span class="col-count" id="colCount"></span>
+        </div>
+        <div class="header-actions">
+          <button class="btn-ghost" onclick="addColumn()"><i class="ti ti-plus" aria-hidden="true" style="font-size:14px;margin-right:4px;"></i>Add column</button>
+        </div>
+      </div>
+      <div class="col-table-wrap">
+        <table class="col-table">
+          <thead>
+            <tr>
+              <th style="width:28px;"></th>
+              <th>Column name</th>
+              <th style="width:130px;">Type</th>
+              <th style="width:52px;text-align:center;">PK</th>
+              <th style="width:52px;text-align:center;">NN</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="colBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS = ['#a78bfa','#60a5fa','#34d399','#fb923c','#f472b6','#facc15','#22d3ee'];
+let tables = [
+  { id:1, name:'users', color:'#a78bfa', cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},
+    {id:2,name:'name',type:'VARCHAR',pk:false,nn:true},
+    {id:3,name:'email',type:'VARCHAR',pk:false,nn:true},
+    {id:4,name:'created_at',type:'TIMESTAMP',pk:false,nn:false},
+  ]},
+  { id:2, name:'orders', color:'#60a5fa', cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},
+    {id:2,name:'user_id',type:'INT',pk:false,nn:true},
+    {id:3,name:'amount',type:'DECIMAL',pk:false,nn:true},
+    {id:4,name:'status',type:'VARCHAR',pk:false,nn:false},
+    {id:5,name:'created_at',type:'TIMESTAMP',pk:false,nn:false},
+  ]},
+];
+let activeId = 1;
+let nextTableId = 3;
+let nextColId = 10;
+
+const TYPES = ['INT','BIGINT','VARCHAR','TEXT','BOOLEAN','DECIMAL','FLOAT','DATE','TIMESTAMP','UUID','JSON'];
+
+function render(){
+  renderSidebar();
+  renderEditor();
+}
+
+function renderSidebar(){
+  const list = document.getElementById('tableList');
+  list.innerHTML = tables.map(t => `
+    <div class="table-item ${t.id===activeId?'active':''}" onclick="selectTable(${t.id})">
+      <div class="table-item-left">
+        <div class="table-dot" style="background:${t.color}"></div>
+        <div>
+          <div class="table-name">${t.name||'unnamed'}</div>
+          <div class="table-cols">${t.cols.length} column${t.cols.length!==1?'s':''}</div>
+        </div>
+      </div>
+      <button class="table-del" onclick="event.stopPropagation();deleteTable(${t.id})" aria-label="Delete table">
+        <i class="ti ti-trash" style="font-size:13px;"></i>
+      </button>
+    </div>
+  `).join('');
+}
+
+function renderEditor(){
+  const t = tables.find(x=>x.id===activeId);
+  document.getElementById('emptyState').style.display = t?'none':'flex';
+  const ed = document.getElementById('tableEditor');
+  if(!t){ed.style.display='none';return;}
+  ed.style.display='flex';
+  document.getElementById('activeBadge').style.background = t.color;
+  document.getElementById('tableNameInput').value = t.name;
+  document.getElementById('colCount').textContent = `${t.cols.length} columns`;
+
+  const body = document.getElementById('colBody');
+  body.innerHTML = t.cols.map((c,i) => `
+    <tr class="col-row">
+      <td style="text-align:center;color:rgba(255,255,255,0.2);font-size:12px;">${i+1}</td>
+      <td><input class="col-input" value="${c.name}" onchange="updateCol(${c.id},'name',this.value)" placeholder="column_name"></td>
+      <td>
+        <select class="col-select" onchange="updateCol(${c.id},'type',this.value)">
+          ${TYPES.map(tp=>`<option value="${tp}" ${c.type===tp?'selected':''}>${tp}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:center;">
+        <button class="pk-toggle ${c.pk?'on':''}" onclick="toggleCol(${c.id},'pk')" title="Primary key" aria-label="Toggle primary key"></button>
+      </td>
+      <td style="text-align:center;">
+        <button class="nn-toggle ${c.nn?'on':''}" onclick="toggleCol(${c.id},'nn')" title="Not null" aria-label="Toggle not null"></button>
+      </td>
+      <td>
+        <button class="del-col-btn" onclick="deleteCol(${c.id})" aria-label="Delete column"><i class="ti ti-x" style="font-size:13px;"></i></button>
+      </td>
+    </tr>
+  `).join('') + `
+    <tr class="add-col-row">
+      <td></td>
+      <td colspan="5">
+        <button class="btn-add-col" onclick="addColumn()">
+          <i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i> Add column
+        </button>
+      </td>
+    </tr>
+  `;
+}
+
+function selectTable(id){ activeId=id; render(); }
+
+function addTable(){
+  const color = COLORS[nextTableId % COLORS.length];
+  const t = { id:nextTableId++, name:`table_${tables.length+1}`, color, cols:[
+    {id:nextColId++,name:'id',type:'INT',pk:true,nn:true}
+  ]};
+  tables.push(t);
+  activeId = t.id;
+  render();
+  setTimeout(()=>document.getElementById('tableNameInput').focus(),50);
+}
+
+function deleteTable(id){
+  if(tables.length===1){showToast('Keep at least one table');return;}
+  tables = tables.filter(t=>t.id!==id);
+  if(activeId===id) activeId = tables[0].id;
+  render();
+}
+
+function renameActiveTable(val){
+  const t = tables.find(x=>x.id===activeId);
+  if(t) t.name = val;
+  renderSidebar();
+}
+
+function addColumn(){
+  const t = tables.find(x=>x.id===activeId);
+  if(!t) return;
+  t.cols.push({id:nextColId++,name:'',type:'VARCHAR',pk:false,nn:false});
+  renderEditor();
+  const inputs = document.querySelectorAll('#colBody .col-input');
+  if(inputs.length) inputs[inputs.length-1].focus();
+}
+
+function updateCol(cid,field,val){
+  const t = tables.find(x=>x.id===activeId);
+  const c = t&&t.cols.find(x=>x.id===cid);
+  if(c){ c[field]=val; document.getElementById('colCount').textContent=`${t.cols.length} columns`; renderSidebar(); }
+}
+
+function toggleCol(cid,field){
+  const t = tables.find(x=>x.id===activeId);
+  const c = t&&t.cols.find(x=>x.id===cid);
+  if(c){ c[field]=!c[field]; renderEditor(); }
+}
+
+function deleteCol(cid){
+  const t = tables.find(x=>x.id===activeId);
+  if(!t||t.cols.length<=1){showToast('Keep at least one column');return;}
+  t.cols = t.cols.filter(x=>x.id!==cid);
+  renderEditor(); renderSidebar();
+}
+
+function clearAll(){
+  if(confirm('Clear all tables?')){ tables=[]; activeId=null; nextTableId=1; render(); }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function goToGenerator(){
+  const schema = tables.map(t=>`${t.name}(${t.cols.map(c=>c.name+':'+c.type+(c.pk?' PK':'')+(c.nn?' NN':'')).join(', ')})`).join(' | ');
+  sendPrompt(`My schema is ready: ${schema}. Now build Step 3 — the Query Generator page!`);
+}
+
+render();
+</script>
