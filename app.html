@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQLGenius — Text to SQL</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8f0;
+    overflow-x: hidden;
+  }
+
+  /* ── Page Router ── */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ── Shared Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 58px; flex-shrink: 0;
+    background: rgba(10,10,15,0.9);
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 9px; cursor: pointer; text-decoration: none; }
+  .logo-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .logo-text { font-size: 16px; font-weight: 700; background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    padding: 5px 14px; border-radius: 99px; font-size: 12.5px;
+    color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s;
+    border: 0.5px solid transparent; background: none;
+  }
+  .nav-link:hover { color: rgba(255,255,255,0.7); }
+  .nav-link.active { background: rgba(124,58,237,0.15); color: #a78bfa; border-color: rgba(124,58,237,0.3); }
+  .nav-right { display: flex; gap: 8px; align-items: center; }
+  .btn-nav-key {
+    padding: 6px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
+    background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5); transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+  }
+  .btn-nav-key:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+  .btn-nav-key.key-set { border-color: rgba(52,211,153,0.3); color: #34d399; background: rgba(52,211,153,0.06); }
+  .btn-primary-nav {
+    padding: 7px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .btn-primary-nav:hover { transform: translateY(-1px); }
+
+  /* ── Shared Utilities ── */
+  .bg-grid {
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(120,80,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(120,80,255,0.03) 1px,transparent 1px);
+    background-size: 48px 48px; pointer-events: none; z-index: 0;
+  }
+  .glow { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.12; animation: orb 12s ease-in-out infinite alternate; }
+  .glow.a { width: 500px; height: 500px; background: #7c3aed; top: -120px; left: -100px; }
+  .glow.b { width: 380px; height: 380px; background: #2563eb; top: 40%; right: -80px; animation-delay: -5s; }
+  .glow.c { width: 300px; height: 300px; background: #0d9488; bottom: 40px; left: 35%; animation-delay: -9s; }
+  @keyframes orb { from{transform:translate(0,0)} to{transform:translate(20px,28px)} }
+
+  .scroll-content { flex: 1; overflow-y: auto; position: relative; z-index: 1; }
+  .scroll-content::-webkit-scrollbar { width: 4px; }
+  .scroll-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  /* ── Buttons ── */
+  .btn { padding: 10px 22px; border-radius: 9px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px; }
+  .btn-purple { background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff; }
+  .btn-purple:hover { transform: translateY(-2px); }
+  .btn-ghost { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 7px; }
+  .btn-danger { background: rgba(226,75,74,0.08); border: 0.5px solid rgba(226,75,74,0.2); color: #f09595; }
+  .btn-danger:hover { background: rgba(226,75,74,0.14); }
+
+  /* ── API Key Modal ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: #13131f; border: 0.5px solid rgba(124,58,237,0.25);
+    border-radius: 16px; padding: 28px; width: 440px; max-width: 92vw;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: rgba(255,255,255,0.38); margin-bottom: 20px; line-height: 1.5; }
+  .modal-input {
+    width: 100%; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 9px; padding: 10px 14px; font-size: 13px; color: #e8e8f0;
+    outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: rgba(124,58,237,0.5); }
+  .modal-input::placeholder { color: rgba(255,255,255,0.2); font-family: 'Inter',sans-serif; }
+  .modal-note { font-size: 11.5px; color: rgba(255,255,255,0.25); margin-bottom: 20px; line-height: 1.5; }
+  .modal-note a { color: #a78bfa; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 300;
+    background: #1a1a2e; border: 0.5px solid rgba(124,58,237,0.3); border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; color: #a78bfa;
+    opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ════════════════════════════
+     PAGE 1 — LANDING
+  ════════════════════════════ */
+  #page-landing { background: transparent; }
+  .hero {
+    min-height: calc(100vh - 58px); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 80px 32px 60px; position: relative; z-index: 1;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(124,58,237,0.1); border: 0.5px solid rgba(124,58,237,0.3);
+    border-radius: 99px; padding: 5px 16px; font-size: 12.5px; color: #a78bfa;
+    margin-bottom: 30px; animation: fadeUp 0.5s ease both;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; animation: pulse 1.8s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero-title {
+    font-size: 62px; font-weight: 800; line-height: 1.08; letter-spacing: -2.5px;
+    margin-bottom: 22px; animation: fadeUp 0.5s 0.08s ease both;
+  }
+  .hero-title .muted { color: rgba(255,255,255,0.22); }
+  .hero-title .grad { background: linear-gradient(90deg,#a78bfa 0%,#60a5fa 50%,#34d399 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero-sub { font-size: 17px; color: rgba(255,255,255,0.42); max-width: 480px; line-height: 1.65; margin-bottom: 38px; animation: fadeUp 0.5s 0.16s ease both; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 60px; animation: fadeUp 0.5s 0.24s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+  .code-demo {
+    width: 100%; max-width: 660px; background: rgba(255,255,255,0.025);
+    border: 0.5px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden;
+    text-align: left; animation: fadeUp 0.5s 0.35s ease both;
+  }
+  .code-demo-header {
+    padding: 10px 16px; background: rgba(255,255,255,0.03);
+    border-bottom: 0.5px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dot-r{width:10px;height:10px;border-radius:50%;background:#ff5f57;}
+  .dot-y{width:10px;height:10px;border-radius:50%;background:#ffbd2e;}
+  .dot-g{width:10px;height:10px;border-radius:50%;background:#28c840;}
+  .demo-tab { margin-left: 10px; padding: 3px 12px; border-radius: 5px; font-size: 11.5px; background: rgba(124,58,237,0.18); color: #a78bfa; }
+  .code-demo-body { padding: 18px 20px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; line-height: 1.9; }
+  .nl-box { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 9px 13px; font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .cursor-blink { display: inline-block; width: 2px; height: 14px; background: #a78bfa; animation: blink 1s step-end infinite; vertical-align: middle; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .features-section { padding: 80px 40px; max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
+  .section-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #a78bfa; margin-bottom: 10px; }
+  .section-heading { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .section-sub { font-size: 15px; color: rgba(255,255,255,0.38); margin-bottom: 44px; }
+  .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .feat-card {
+    background: rgba(255,255,255,0.025); border: 0.5px solid rgba(255,255,255,0.07);
+    border-radius: 14px; padding: 22px; transition: all 0.25s; cursor: default;
+  }
+  .feat-card:hover { border-color: rgba(124,58,237,0.28); background: rgba(124,58,237,0.04); transform: translateY(-3px); }
+  .feat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 13px; }
+  .fi-purple { background: rgba(124,58,237,0.14); color: #a78bfa; }
+  .fi-blue   { background: rgba(37,99,235,0.14);  color: #60a5fa; }
+  .fi-teal   { background: rgba(13,148,136,0.14); color: #2dd4bf; }
+  .fi-amber  { background: rgba(217,119,6,0.14);  color: #fbbf24; }
+  .feat-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+  .feat-desc  { font-size: 12.5px; color: rgba(255,255,255,0.35); line-height: 1.65; }
+
+  .cta-section { max-width: 880px; margin: 0 auto 80px; padding: 0 40px; position: relative; z-index: 1; }
+  .cta-box {
+    background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(37,99,235,0.07));
+    border: 0.5px solid rgba(124,58,237,0.2); border-radius: 20px;
+    padding: 48px 40px; text-align: center;
+  }
+  .cta-box h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 10px; }
+  .cta-box p  { font-size: 14.5px; color: rgba(255,255,255,0.38); margin-bottom: 28px; }
+
+  /* ════════════════════════════
+     PAGE 2 — SCHEMA BUILDER
+  ════════════════════════════ */
+  #page-schema { background: transparent; }
+  .schema-layout { display: grid; grid-template-columns: 260px 1fr; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+  .schema-sidebar { background: rgba(255,255,255,0.02); border-right: 0.5px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; }
+  .sidebar-top { padding: 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); }
+  .sidebar-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 10px; }
+  .btn-add-table { width: 100%; padding: 8px; border-radius: 8px; background: rgba(124,58,237,0.08); border: 0.5px dashed rgba(124,58,237,0.32); color: #a78bfa; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-add-table:hover { background: rgba(124,58,237,0.16); }
+  .table-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .table-list::-webkit-scrollbar { width: 3px; }
+  .table-item { padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; border: 0.5px solid transparent; }
+  .table-item:hover { background: rgba(255,255,255,0.04); }
+  .table-item.tbl-active { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); }
+  .tbl-left { display: flex; align-items: center; gap: 8px; }
+  .tbl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tbl-name { font-size: 13px; font-weight: 500; }
+  .tbl-count { font-size: 11px; color: rgba(255,255,255,0.28); margin-top: 1px; }
+  .tbl-del { opacity: 0; background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; padding: 2px 5px; font-size: 13px; transition: opacity 0.2s; }
+  .table-item:hover .tbl-del { opacity: 1; }
+
+  .schema-main { display: flex; flex-direction: column; overflow: hidden; }
+  .schema-main-header { padding: 14px 22px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .schema-title-wrap { display: flex; align-items: center; gap: 10px; }
+  .col-table-wrap { flex: 1; overflow-y: auto; padding: 22px; }
+  .col-table-wrap::-webkit-scrollbar { width: 3px; }
+  .col-table { width: 100%; border-collapse: collapse; }
+  .col-table th { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.24); padding: 0 10px 12px; text-align: left; }
+  .col-table td { padding: 4px 5px; vertical-align: middle; }
+  .col-row:hover td { background: rgba(255,255,255,0.02); }
+  .col-input { background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: #e8e8f0; width: 100%; outline: none; transition: border-color 0.2s; font-family: inherit; }
+  .col-input:focus { border-color: rgba(124,58,237,0.4); }
+  .col-select { background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; color: #e8e8f0; outline: none; cursor: pointer; font-family: inherit; }
+  .col-select:focus { border-color: rgba(124,58,237,0.4); }
+  .toggle { width: 32px; height: 18px; border-radius: 9px; border: none; cursor: pointer; position: relative; transition: background 0.2s; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(14px); }
+  .toggle-pk { background: rgba(255,255,255,0.1); }
+  .toggle-pk.on { background: #7c3aed; }
+  .toggle-nn { background: rgba(255,255,255,0.1); }
+  .toggle-nn.on { background: #0d9488; }
+  .del-col { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; }
+  .del-col:hover { color: #f09595; background: rgba(226,75,74,0.1); }
+  .btn-add-col { background: none; border: 0.5px dashed rgba(255,255,255,0.12); border-radius: 6px; color: rgba(255,255,255,0.3); font-size: 12.5px; padding: 7px 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+  .btn-add-col:hover { border-color: rgba(124,58,237,0.3); color: #a78bfa; background: rgba(124,58,237,0.06); }
+  .schema-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,0.2); text-align: center; padding: 40px; }
+
+  /* ════════════════════════════
+     PAGE 3 — GENERATOR
+  ════════════════════════════ */
+  #page-generator { background: transparent; }
+  .gen-layout { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+  .gen-panel { display: flex; flex-direction: column; overflow: hidden; }
+  .gen-panel-left { border-right: 0.5px solid rgba(255,255,255,0.06); }
+  .panel-hdr { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .panel-hdr-title { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+  .dialect-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .dpill { padding: 4px 11px; border-radius: 6px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.15s; }
+  .dpill.dpill-active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.35); color: #a78bfa; }
+  .schema-chips-bar { padding: 12px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; gap: 7px; flex-wrap: wrap; flex-shrink: 0; }
+  .schema-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); font-size: 11.5px; color: rgba(255,255,255,0.45); }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .gen-input-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .field-label { font-size: 12px; color: rgba(255,255,255,0.33); margin-bottom: 6px; }
+  .nl-textarea { width: 100%; min-height: 100px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; color: #e8e8f0; resize: vertical; outline: none; font-family: inherit; line-height: 1.6; transition: border-color 0.2s; }
+  .nl-textarea:focus { border-color: rgba(124,58,237,0.4); }
+  .nl-textarea::placeholder { color: rgba(255,255,255,0.18); }
+  .examples-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ex-btn { padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.38); font-size: 11.5px; text-align: left; cursor: pointer; transition: all 0.2s; line-height: 1.4; }
+  .ex-btn:hover { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); color: rgba(255,255,255,0.7); }
+  .gen-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .gen-btn:hover { transform: translateY(-1px); }
+  .gen-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .gen-output { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .gen-output::-webkit-scrollbar { width: 3px; }
+  .gen-output::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .output-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,0.18); text-align: center; padding: 40px; }
+  .code-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+  .code-card-hdr { padding: 10px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; }
+  .code-card-hdr-left { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+  .dtag { padding: 2px 8px; border-radius: 4px; background: rgba(124,58,237,0.14); color: #a78bfa; font-size: 10.5px; font-weight: 600; }
+  .copy-btn { padding: 4px 10px; border-radius: 6px; font-size: 11.5px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+  .copy-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  .copy-btn.copied { color: #34d399; border-color: rgba(52,211,153,0.3); }
+  .sql-block { padding: 16px 18px; font-family: 'JetBrains Mono',monospace; font-size: 12px; line-height: 1.9; overflow-x: auto; }
+  .explain-card { background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; }
+  .explain-hdr { padding: 10px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); display: flex; align-items: center; gap: 6px; }
+  .explain-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .explain-row { display: flex; gap: 10px; align-items: flex-start; }
+  .explain-clause { flex-shrink: 0; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: 'JetBrains Mono',monospace; background: rgba(124,58,237,0.1); color: #a78bfa; border: 0.5px solid rgba(124,58,237,0.2); min-width: 72px; text-align: center; }
+  .explain-text { font-size: 12.5px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+  .warn-card { background: rgba(251,191,36,0.05); border: 0.5px solid rgba(251,191,36,0.2); border-radius: 10px; padding: 10px 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: rgba(251,191,36,0.7); }
+  .out-actions { display: flex; gap: 8px; padding: 0 20px 16px; flex-shrink: 0; }
+  .out-action-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .out-action-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
+
+  /* loading dots */
+  .ldots { display: flex; gap: 5px; padding: 20px; }
+  .ldot { width: 7px; height: 7px; border-radius: 50%; background: #7c3aed; animation: ldot 1.2s ease infinite; }
+  .ldot:nth-child(2){animation-delay:.2s} .ldot:nth-child(3){animation-delay:.4s}
+  @keyframes ldot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+  /* syntax highlight */
+  .kw{color:#c084fc;} .fn{color:#60a5fa;} .str{color:#34d399;} .num{color:#fb923c;} .cm{color:rgba(255,255,255,0.22);font-style:italic;}
+
+  /* ════════════════════════════
+     PAGE 4 — HISTORY
+  ════════════════════════════ */
+  #page-history .scroll-content { padding: 32px 40px; max-width: 960px; margin: 0 auto; }
+  .hist-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+  .hist-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .hist-sub { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
+  .stat-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px 16px; }
+  .stat-lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 6px; }
+  .stat-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .hist-toolbar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.24); font-size: 15px; pointer-events: none; }
+  .search-box { width: 100%; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 8px 12px 8px 34px; font-size: 13px; color: #e8e8f0; outline: none; transition: border-color 0.2s; font-family: inherit; }
+  .search-box:focus { border-color: rgba(124,58,237,0.4); }
+  .search-box::placeholder { color: rgba(255,255,255,0.2); }
+  .filter-pill { padding: 7px 14px; border-radius: 8px; font-size: 12.5px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.42); cursor: pointer; transition: all 0.15s; }
+  .filter-pill.fp-active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.3); color: #a78bfa; }
+  .sort-sel { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 7px 12px; font-size: 12.5px; color: rgba(255,255,255,0.45); outline: none; cursor: pointer; font-family: inherit; }
+  .hist-list { display: flex; flex-direction: column; gap: 10px; }
+  .hist-card { background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+  .hist-card:hover { border-color: rgba(124,58,237,0.25); background: rgba(124,58,237,0.03); }
+  .hist-card.hc-open { border-color: rgba(124,58,237,0.3); }
+  .hc-top { padding: 13px 16px; display: flex; align-items: flex-start; gap: 12px; }
+  .hc-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+  .hci-pg{background:rgba(124,58,237,0.12);color:#a78bfa;} .hci-my{background:rgba(37,99,235,0.12);color:#60a5fa;} .hci-sq{background:rgba(13,148,136,0.12);color:#34d399;} .hci-bq{background:rgba(217,119,6,0.12);color:#fbbf24;}
+  .hc-main { flex: 1; min-width: 0; }
+  .hc-prompt { font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.8); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hc-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .hc-pill { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .hcp-pg{background:rgba(124,58,237,0.1);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.2);}
+  .hcp-my{background:rgba(37,99,235,0.1);color:#60a5fa;border:0.5px solid rgba(37,99,235,0.2);}
+  .hcp-sq{background:rgba(13,148,136,0.1);color:#34d399;border:0.5px solid rgba(13,148,136,0.2);}
+  .hcp-bq{background:rgba(217,119,6,0.1);color:#fbbf24;border:0.5px solid rgba(217,119,6,0.2);}
+  .hc-time { font-size: 11.5px; color: rgba(255,255,255,0.24); }
+  .hc-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+  .icon-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.33); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+  .icon-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  .icon-btn.ibdanger:hover { background: rgba(226,75,74,0.1); color: #f09595; }
+  .icon-btn.ibstar { color: #fbbf24; }
+  .hc-expanded { border-top: 0.5px solid rgba(255,255,255,0.06); padding: 14px 16px; display: none; }
+  .hc-open .hc-expanded { display: block; }
+  .sql-pre { font-family: 'JetBrains Mono',monospace; font-size: 11.5px; line-height: 1.8; color: rgba(255,255,255,0.5); background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; }
+  .hce-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .hcea-btn { padding: 6px 14px; border-radius: 7px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.42); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+  .hcea-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
+  .hcea-primary { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); color: #a78bfa; }
+  .hcea-primary:hover { background: rgba(124,58,237,0.18); }
+  .hist-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow a"></div>
+<div class="glow b"></div>
+<div class="glow c"></div>
+
+<!-- ── Shared Nav ── -->
+<nav id="main-nav">
+  <a class="nav-logo" onclick="navigate('landing')">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">SQLGenius</span>
+  </a>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-landing"  onclick="navigate('landing')">Home</button>
+    <button class="nav-link" id="nl-schema"   onclick="navigate('schema')">Schema</button>
+    <button class="nav-link" id="nl-generator" onclick="navigate('generator')">Generator</button>
+    <button class="nav-link" id="nl-history"  onclick="navigate('history')">History</button>
+  </div>
+  <div class="nav-right">
+    <button class="btn-nav-key" id="apiKeyBtn" onclick="openKeyModal()">
+      <i class="ti ti-key" style="font-size:13px;" aria-hidden="true"></i>
+      <span id="keyBtnLabel">Add API key</span>
+    </button>
+    <button class="btn-primary-nav" onclick="navigate('schema')">Get started →</button>
+  </div>
+</nav>
+
+<!-- ════ PAGE 1: LANDING ════ -->
+<div class="page active" id="page-landing">
+  <div class="scroll-content">
+    <section class="hero">
+      <div class="hero-badge"><span class="badge-dot"></span> AI-powered · No SQL knowledge needed</div>
+      <h1 class="hero-title">
+        <span class="muted">Write SQL in</span><br>
+        <span class="grad">plain English</span>
+      </h1>
+      <p class="hero-sub">Describe your tables, type what you need — SQLGenius writes the perfect query. Instantly.</p>
+      <div class="hero-btns">
+        <button class="btn btn-purple" onclick="navigate('schema')"><i class="ti ti-arrow-right" aria-hidden="true"></i> Start building</button>
+        <button class="btn btn-ghost" onclick="navigate('generator')">Try generator</button>
+      </div>
+      <div class="code-demo">
+        <div class="code-demo-header">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="demo-tab">Query Generator</div>
+        </div>
+        <div class="code-demo-body">
+          <div class="nl-box">💬 &nbsp;<span id="typed"></span><span class="cursor-blink"></span></div>
+          <div><span class="kw">SELECT</span> <span class="fn">u.name</span>, <span class="fn">u.email</span>, <span class="fn">SUM</span>(<span class="fn">o.amount</span>) <span class="kw">AS</span> <span class="str">revenue</span></div>
+          <div><span class="kw">FROM</span> <span class="fn">users</span> <span class="fn">u</span> <span class="kw">JOIN</span> <span class="fn">orders</span> <span class="fn">o</span> <span class="kw">ON</span> <span class="fn">u.id</span> = <span class="fn">o.user_id</span></div>
+          <div><span class="kw">WHERE</span> <span class="fn">o.created_at</span> >= <span class="fn">NOW</span>() - <span class="kw">INTERVAL</span> <span class="str">'30 days'</span></div>
+          <div><span class="kw">GROUP BY</span> <span class="fn">u.id</span> <span class="kw">ORDER BY</span> <span class="str">revenue</span> <span class="kw">DESC LIMIT</span> <span class="num">10</span>;</div>
+        </div>
+      </div>
+    </section>
+    <section class="features-section">
+      <div class="section-eyebrow">What you get</div>
+      <div class="section-heading">Everything you need</div>
+      <div class="section-sub">Built for engineers who want results, not syntax headaches.</div>
+      <div class="features-grid">
+        <div class="feat-card"><div class="feat-icon fi-purple"><i class="ti ti-sparkles" aria-hidden="true"></i></div><div class="feat-title">AI-powered generation</div><div class="feat-desc">Claude understands your schema and intent to write accurate, optimised SQL every time.</div></div>
+        <div class="feat-card"><div class="feat-icon fi-blue"><i class="ti ti-table" aria-hidden="true"></i></div><div class="feat-title">Visual schema builder</div><div class="feat-desc">Define tables, columns, types and relationships — no raw SQL needed to get started.</div></div>
+        <div class="feat-card"><div class="feat-icon fi-teal"><i class="ti ti-bulb" aria-hidden="true"></i></div><div class="feat-title">Plain English explanation</div><div class="feat-desc">Every query comes with a line-by-line breakdown so you understand exactly what it does.</div></div>
+        <div class="feat-card"><div class="feat-icon fi-amber"><i class="ti ti-history" aria-hidden="true"></i></div><div class="feat-title">Query history</div><div class="feat-desc">Save, revisit and compare past generations. Export as .sql files with one click.</div></div>
+      </div>
+    </section>
+    <section class="cta-section">
+      <div class="cta-box">
+        <h2>Ready to stop guessing SQL?</h2>
+        <p>Add your Anthropic API key and generate your first query in seconds.</p>
+        <button class="btn btn-purple" onclick="openKeyModal()"><i class="ti ti-key" aria-hidden="true"></i> Add API key to start</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ════ PAGE 2: SCHEMA BUILDER ════ -->
+<div class="page" id="page-schema" style="height:100vh;">
+  <div class="schema-layout" style="flex:1;overflow:hidden;">
+    <div class="schema-sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-label">Tables</div>
+        <button class="btn-add-table" onclick="addTable()"><i class="ti ti-plus" aria-hidden="true"></i> Add table</button>
+      </div>
+      <div class="table-list" id="tableList"></div>
+    </div>
+    <div class="schema-main" id="schemMain">
+      <div class="schema-empty" id="schemaEmpty">
+        <i class="ti ti-table" style="font-size:38px;color:rgba(255,255,255,0.12);" aria-hidden="true"></i>
+        <div style="font-size:15px;font-weight:500;color:rgba(255,255,255,0.35);">No table selected</div>
+        <div style="font-size:13px;">Add a table from the sidebar</div>
+      </div>
+      <div id="schemaEditor" style="display:none;flex-direction:column;height:100%;">
+        <div class="schema-main-header">
+          <div class="schema-title-wrap">
+            <div id="editorDot" style="width:10px;height:10px;border-radius:50%;"></div>
+            <input id="tblNameInput" class="col-input" style="width:180px;font-size:15px;font-weight:600;" placeholder="Table name" oninput="renameTable(this.value)">
+            <span id="colCountLabel" style="font-size:12px;color:rgba(255,255,255,0.28);margin-left:4px;"></span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="addColumn()"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i> Add column</button>
+            <button class="btn btn-purple btn-sm" onclick="navigate('generator')">Generate SQL →</button>
+          </div>
+        </div>
+        <div class="col-table-wrap">
+          <table class="col-table">
+            <thead><tr>
+              <th style="width:28px;"></th>
+              <th>Column name</th>
+              <th style="width:130px;">Type</th>
+              <th style="width:52px;text-align:center;">PK</th>
+              <th style="width:52px;text-align:center;">NN</th>
+              <th style="width:36px;"></th>
+            </tr></thead>
+            <tbody id="colBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE 3: GENERATOR ════ -->
+<div class="page" id="page-generator" style="height:100vh;">
+  <div class="gen-layout" style="flex:1;overflow:hidden;">
+    <div class="gen-panel gen-panel-left">
+      <div class="panel-hdr">
+        <span class="panel-hdr-title">Input</span>
+        <div class="dialect-pills" id="dialectPills">
+          <button class="dpill dpill-active" onclick="setDialect('PostgreSQL',this)">PostgreSQL</button>
+          <button class="dpill" onclick="setDialect('MySQL',this)">MySQL</button>
+          <button class="dpill" onclick="setDialect('SQLite',this)">SQLite</button>
+          <button class="dpill" onclick="setDialect('BigQuery',this)">BigQuery</button>
+        </div>
+      </div>
+      <div class="schema-chips-bar" id="schemaChipsBar"></div>
+      <div class="gen-input-area">
+        <div>
+          <div class="field-label">Describe what you want in plain English</div>
+          <textarea class="nl-textarea" id="genPrompt" placeholder="e.g. Show me the top 10 customers by total order value in the last 30 days..."></textarea>
+        </div>
+        <div>
+          <div class="field-label" style="margin-bottom:7px;">Try an example</div>
+          <div class="examples-grid">
+            <button class="ex-btn" onclick="setEx(this)">Top 10 users by total revenue last 30 days</button>
+            <button class="ex-btn" onclick="setEx(this)">Count of orders grouped by status this week</button>
+            <button class="ex-btn" onclick="setEx(this)">All pending orders with user name and email</button>
+            <button class="ex-btn" onclick="setEx(this)">Average order value per user, sorted highest first</button>
+          </div>
+        </div>
+        <button class="gen-btn" id="genBtn" onclick="generate()">
+          <i class="ti ti-sparkles" aria-hidden="true"></i> Generate SQL
+        </button>
+      </div>
+    </div>
+    <div class="gen-panel">
+      <div class="panel-hdr">
+        <span class="panel-hdr-title">Output</span>
+        <div id="outHeaderActions" style="display:none;gap:6px;display:none;">
+          <button class="copy-btn" id="mainCopyBtn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy</button>
+          <button class="copy-btn" onclick="downloadSQL()"><i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i> Export .sql</button>
+        </div>
+      </div>
+      <div class="gen-output" id="genOutput">
+        <div class="output-empty" id="genEmpty">
+          <i class="ti ti-terminal-2" style="font-size:36px;" aria-hidden="true"></i>
+          <div style="font-size:14px;color:rgba(255,255,255,0.3);font-weight:500;">Your SQL will appear here</div>
+          <div style="font-size:12.5px;">Describe your query and hit generate</div>
+        </div>
+      </div>
+      <div class="out-actions" id="outActions" style="display:none;">
+        <button class="out-action-btn" onclick="saveToHistory()"><i class="ti ti-bookmark" style="font-size:14px;" aria-hidden="true"></i> Save</button>
+        <button class="out-action-btn" onclick="generate()"><i class="ti ti-refresh" style="font-size:14px;" aria-hidden="true"></i> Regenerate</button>
+        <button class="out-action-btn" onclick="navigate('history')"><i class="ti ti-history" style="font-size:14px;" aria-hidden="true"></i> History</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE 4: HISTORY ════ -->
+<div class="page" id="page-history">
+  <div class="scroll-content" style="position:relative;z-index:1;">
+    <div style="max-width:900px;margin:0 auto;padding:32px 32px 60px;">
+      <div class="hist-header">
+        <div>
+          <div class="hist-title">Query history</div>
+          <div class="hist-sub" id="histSub">0 queries saved</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash" aria-hidden="true" style="font-size:13px;"></i> Clear all</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-lbl">Total</div><div class="stat-val" id="hStatTotal" style="color:#a78bfa;">0</div></div>
+        <div class="stat-card"><div class="stat-lbl">Starred</div><div class="stat-val" id="hStatStarred" style="color:#fbbf24;">0</div></div>
+        <div class="stat-card"><div class="stat-lbl">Dialects</div><div class="stat-val" id="hStatDialects" style="color:#60a5fa;">0</div></div>
+        <div class="stat-card"><div class="stat-lbl">Tables</div><div class="stat-val" id="hStatTables" style="color:#34d399;">0</div></div>
+      </div>
+      <div class="hist-toolbar">
+        <div class="search-wrap">
+          <i class="ti ti-search search-ico" aria-hidden="true"></i>
+          <input class="search-box" id="histSearch" placeholder="Search queries..." oninput="renderHistory()">
+        </div>
+        <button class="filter-pill fp-active" id="fpAll" onclick="setHFilter('all',this)">All</button>
+        <button class="filter-pill" id="fpStarred" onclick="setHFilter('starred',this)">Starred</button>
+        <select class="sort-sel" id="histSort" onchange="renderHistory()">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="dialect">By dialect</option>
+        </select>
+      </div>
+      <div class="hist-list" id="histList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── API Key Modal ── -->
+<div class="modal-bg" id="keyModal">
+  <div class="modal">
+    <div class="modal-title">Add your Anthropic API key</div>
+    <div class="modal-sub">Your key is stored only in your browser's memory and never sent anywhere except the Anthropic API.</div>
+    <input class="modal-input" id="keyInput" type="password" placeholder="sk-ant-api03-...">
+    <div class="modal-note">
+      Don't have a key? Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. The key is used only to call the Claude API to generate SQL.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeKeyModal()">Cancel</button>
+      <button class="btn btn-purple btn-sm" onclick="saveKey()">Save key</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════
+//  GLOBAL STATE
+// ══════════════════════════
+let apiKey = '';
+let currentDialect = 'PostgreSQL';
+let currentSQL = '';
+let activeTableId = null;
+let nextTableId = 1;
+let nextColId = 100;
+let histFilter = 'all';
+let expandedHistId = null;
+
+const COLORS = ['#a78bfa','#60a5fa','#34d399','#fb923c','#f472b6','#facc15','#22d3ee'];
+const TYPES  = ['INT','BIGINT','VARCHAR','TEXT','BOOLEAN','DECIMAL','FLOAT','DATE','TIMESTAMP','UUID','JSON'];
+
+// Shared tables & history across pages
+let tables = [
+  { id:1, name:'users', color:'#a78bfa', cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},
+    {id:2,name:'name',type:'VARCHAR',pk:false,nn:true},
+    {id:3,name:'email',type:'VARCHAR',pk:false,nn:true},
+    {id:4,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}
+  ]},
+  { id:2, name:'orders', color:'#60a5fa', cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},
+    {id:2,name:'user_id',type:'INT',pk:false,nn:true},
+    {id:3,name:'amount',type:'DECIMAL',pk:false,nn:true},
+    {id:4,name:'status',type:'VARCHAR',pk:false,nn:false},
+    {id:5,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}
+  ]}
+];
+nextTableId = 3;
+activeTableId = 1;
+
+let queryHistory = [];
+
+// ══════════════════════════
+//  ROUTER
+// ══════════════════════════
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nl-' + page).classList.add('active');
+  window.scrollTo(0,0);
+  if (page === 'schema')    renderSchema();
+  if (page === 'generator') renderGenSchema();
+  if (page === 'history')   renderHistory();
+}
+
+// ══════════════════════════
+//  API KEY
+// ══════════════════════════
+function openKeyModal() {
+  document.getElementById('keyInput').value = apiKey;
+  document.getElementById('keyModal').classList.add('open');
+}
+function closeKeyModal() {
+  document.getElementById('keyModal').classList.remove('open');
+}
+function saveKey() {
+  apiKey = document.getElementById('keyInput').value.trim();
+  closeKeyModal();
+  const btn = document.getElementById('apiKeyBtn');
+  const lbl = document.getElementById('keyBtnLabel');
+  if (apiKey) {
+    btn.classList.add('key-set');
+    lbl.textContent = 'Key saved ✓';
+  } else {
+    btn.classList.remove('key-set');
+    lbl.textContent = 'Add API key';
+  }
+  showToast(apiKey ? 'API key saved!' : 'API key cleared');
+}
+document.getElementById('keyModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('keyModal')) closeKeyModal();
+});
+
+// ══════════════════════════
+//  TOAST
+// ══════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ══════════════════════════
+//  SCHEMA BUILDER
+// ══════════════════════════
+function renderSchema() {
+  renderTableList();
+  renderEditor();
+}
+
+function renderTableList() {
+  document.getElementById('tableList').innerHTML = tables.map(t => `
+    <div class="table-item ${t.id===activeTableId?'tbl-active':''}" onclick="selectTable(${t.id})">
+      <div class="tbl-left">
+        <div class="tbl-dot" style="background:${t.color}"></div>
+        <div>
+          <div class="tbl-name">${t.name||'unnamed'}</div>
+          <div class="tbl-count">${t.cols.length} col${t.cols.length!==1?'s':''}</div>
+        </div>
+      </div>
+      <button class="tbl-del" onclick="event.stopPropagation();deleteTable(${t.id})" aria-label="Delete table">
+        <i class="ti ti-trash" style="font-size:12px;"></i>
+      </button>
+    </div>
+  `).join('');
+}
+
+function renderEditor() {
+  const t = tables.find(x=>x.id===activeTableId);
+  document.getElementById('schemaEmpty').style.display  = t ? 'none' : 'flex';
+  const ed = document.getElementById('schemaEditor');
+  if (!t) { ed.style.display = 'none'; return; }
+  ed.style.display = 'flex';
+  document.getElementById('editorDot').style.background = t.color;
+  document.getElementById('tblNameInput').value = t.name;
+  document.getElementById('colCountLabel').textContent = `${t.cols.length} columns`;
+
+  document.getElementById('colBody').innerHTML = t.cols.map((c,i) => `
+    <tr class="col-row">
+      <td style="text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">${i+1}</td>
+      <td><input class="col-input" value="${c.name}" onchange="updateCol(${c.id},'name',this.value)" placeholder="column_name"></td>
+      <td><select class="col-select" onchange="updateCol(${c.id},'type',this.value)">${TYPES.map(tp=>`<option value="${tp}"${c.type===tp?' selected':''}>${tp}</option>`).join('')}</select></td>
+      <td style="text-align:center;"><button class="toggle toggle-pk ${c.pk?'on':''}" onclick="toggleCol(${c.id},'pk')" aria-label="Toggle PK"></button></td>
+      <td style="text-align:center;"><button class="toggle toggle-nn ${c.nn?'on':''}" onclick="toggleCol(${c.id},'nn')" aria-label="Toggle NN"></button></td>
+      <td><button class="del-col" onclick="deleteCol(${c.id})" aria-label="Delete column"><i class="ti ti-x" style="font-size:13px;"></i></button></td>
+    </tr>
+  `).join('') + `
+    <tr><td></td><td colspan="5" style="padding:8px 5px;">
+      <button class="btn-add-col" onclick="addColumn()"><i class="ti ti-plus" style="font-size:13px;" aria-hidden="true"></i> Add column</button>
+    </td></tr>`;
+}
+
+function selectTable(id)  { activeTableId = id; renderSchema(); }
+function renameTable(val) { const t=tables.find(x=>x.id===activeTableId); if(t){t.name=val;} renderTableList(); }
+
+function addTable() {
+  const color = COLORS[nextTableId % COLORS.length];
+  const t = { id: nextTableId++, name: `table_${tables.length+1}`, color, cols: [{id:nextColId++,name:'id',type:'INT',pk:true,nn:true}] };
+  tables.push(t); activeTableId = t.id; renderSchema();
+  setTimeout(() => document.getElementById('tblNameInput').focus(), 50);
+}
+
+function deleteTable(id) {
+  if (tables.length === 1) { showToast('Keep at least one table'); return; }
+  tables = tables.filter(t=>t.id!==id);
+  if (activeTableId === id) activeTableId = tables[0].id;
+  renderSchema();
+}
+
+function addColumn() {
+  const t = tables.find(x=>x.id===activeTableId); if(!t) return;
+  t.cols.push({id:nextColId++,name:'',type:'VARCHAR',pk:false,nn:false});
+  renderEditor();
+  const inputs = document.querySelectorAll('#colBody .col-input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function updateCol(cid, field, val) {
+  const t = tables.find(x=>x.id===activeTableId);
+  const c = t && t.cols.find(x=>x.id===cid);
+  if (c) { c[field]=val; document.getElementById('colCountLabel').textContent=`${t.cols.length} columns`; renderTableList(); }
+}
+
+function toggleCol(cid, field) {
+  const t = tables.find(x=>x.id===activeTableId);
+  const c = t && t.cols.find(x=>x.id===cid);
+  if (c) { c[field]=!c[field]; renderEditor(); }
+}
+
+function deleteCol(cid) {
+  const t = tables.find(x=>x.id===activeTableId);
+  if (!t || t.cols.length<=1) { showToast('Keep at least one column'); return; }
+  t.cols = t.cols.filter(x=>x.id!==cid);
+  renderEditor(); renderTableList();
+}
+
+// ══════════════════════════
+//  GENERATOR
+// ══════════════════════════
+function renderGenSchema() {
+  const bar = document.getElementById('schemaChipsBar');
+  bar.innerHTML = tables.map(t => `
+    <div class="schema-chip">
+      <div class="chip-dot" style="background:${t.color}"></div>
+      ${t.name} · ${t.cols.length} cols
+    </div>
+  `).join('') + `<div class="schema-chip" style="cursor:pointer;border-style:dashed;" onclick="navigate('schema')">
+    <i class="ti ti-edit" style="font-size:11px;" aria-hidden="true"></i> Edit schema
+  </div>`;
+}
+
+function setDialect(d, btn) {
+  currentDialect = d;
+  document.querySelectorAll('.dpill').forEach(b=>b.classList.remove('dpill-active'));
+  btn.classList.add('dpill-active');
+}
+
+function setEx(btn) { document.getElementById('genPrompt').value = btn.textContent; }
+
+function buildSchemaString() {
+  return tables.map(t =>
+    `${t.name}(${t.cols.map(c=>c.name+':'+c.type+(c.pk?' PK':'')+(c.nn?' NOT NULL':'')).join(', ')})`
+  ).join('\n');
+}
+
+async function generate() {
+  const prompt = document.getElementById('genPrompt').value.trim();
+  if (!prompt) { document.getElementById('genPrompt').focus(); return; }
+  if (!apiKey)  { openKeyModal(); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> Generating...';
+
+  document.getElementById('genEmpty').style.display = 'none';
+  document.getElementById('outHeaderActions').style.display = 'none';
+  document.getElementById('outActions').style.display = 'none';
+
+  const out = document.getElementById('genOutput');
+  out.innerHTML = '<div class="ldots"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key': apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role:'user', content:
+          `You are a SQL expert. Given the database schema and a plain English request, generate perfect SQL.
+
+Schema:
+${buildSchemaString()}
+
+Dialect: ${currentDialect}
+Request: ${prompt}
+
+Respond ONLY with valid JSON — no markdown, no preamble:
+{
+  "sql": "the full SQL query",
+  "clauses": [
+    {"clause":"SELECT","explanation":"what this selects"},
+    {"clause":"FROM","explanation":"the source table"},
+    {"clause":"JOIN","explanation":"how tables are joined"},
+    {"clause":"WHERE","explanation":"the filter condition"},
+    {"clause":"GROUP BY","explanation":"grouping logic"},
+    {"clause":"ORDER BY","explanation":"sort order"},
+    {"clause":"LIMIT","explanation":"row limit"}
+  ],
+  "warning": "short warning if ambiguous or could be slow, else empty string"
+}`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text;
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    currentSQL = parsed.sql;
+    renderSQLOutput(parsed);
+
+  } catch(e) {
+    out.innerHTML = `<div style="padding:20px;font-size:13px;color:rgba(226,75,74,0.8);background:rgba(226,75,74,0.06);border:0.5px solid rgba(226,75,74,0.2);border-radius:10px;">
+      <i class="ti ti-alert-circle" style="font-size:15px;margin-right:6px;" aria-hidden="true"></i>
+      ${e.message || 'Failed to generate SQL. Check your API key and try again.'}
+    </div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-sparkles" aria-hidden="true"></i> Generate SQL';
+}
+
+function hl(sql) {
+  const KWS = ['SELECT','FROM','WHERE','LEFT JOIN','RIGHT JOIN','INNER JOIN','JOIN','ON','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','AS','AND','OR','NOT','IN','EXISTS','BETWEEN','LIKE','IS NULL','IS NOT NULL','DISTINCT','COUNT','SUM','AVG','MAX','MIN','ROUND','NOW','INTERVAL','DESC','ASC','BY','CURRENT_DATE','DATE_TRUNC','FORMAT_DATE','EXTRACT'];
+  let h = sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  KWS.forEach(k => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span class="kw">${k}</span>`); });
+  h = h.replace(/'([^']*)'/g,`<span class="str">'$1'</span>`);
+  h = h.replace(/\b(\d+)\b/g,`<span class="num">$1</span>`);
+  h = h.replace(/--.*$/gm, m=>`<span class="cm">${m}</span>`);
+  return h;
+}
+
+function renderSQLOutput(data) {
+  const out = document.getElementById('genOutput');
+  const sqlUpper = data.sql.toUpperCase();
+  const clauses = data.clauses.filter(c => sqlUpper.includes(c.clause.split(' ')[0]));
+  out.innerHTML = `
+    <div class="code-card">
+      <div class="code-card-hdr">
+        <div class="code-card-hdr-left"><i class="ti ti-code" style="font-size:13px;" aria-hidden="true"></i> Generated SQL <span class="dtag">${currentDialect}</span></div>
+        <button class="copy-btn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy</button>
+      </div>
+      <div class="sql-block">${hl(data.sql)}</div>
+    </div>
+    ${data.warning ? `<div class="warn-card"><i class="ti ti-alert-triangle" style="font-size:15px;flex-shrink:0;" aria-hidden="true"></i><span>${data.warning}</span></div>` : ''}
+    <div class="explain-card">
+      <div class="explain-hdr"><i class="ti ti-bulb" style="font-size:13px;" aria-hidden="true"></i> Plain English breakdown</div>
+      <div class="explain-body">
+        ${clauses.map(c=>`
+          <div class="explain-row">
+            <span class="explain-clause">${c.clause}</span>
+            <span class="explain-text">${c.explanation}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('outHeaderActions').style.display = 'flex';
+  document.getElementById('outActions').style.display = 'flex';
+}
+
+function copySQL() {
+  if (!currentSQL) return;
+  navigator.clipboard.writeText(currentSQL).then(() => {
+    const btn = document.getElementById('mainCopyBtn');
+    if (!btn) return;
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check" style="font-size:13px;" aria-hidden="true"></i> Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy'; }, 2000);
+  });
+}
+
+function downloadSQL() {
+  if (!currentSQL) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([currentSQL],{type:'text/plain'}));
+  a.download = 'query.sql'; a.click();
+}
+
+function saveToHistory() {
+  const prompt = document.getElementById('genPrompt').value.trim();
+  queryHistory.unshift({
+    id: Date.now(), prompt, sql: currentSQL, dialect: currentDialect,
+    tables: tables.map(t=>t.name), time: new Date().toLocaleTimeString(), starred: false
+  });
+  showToast('Saved to history!');
+}
+
+// ══════════════════════════
+//  HISTORY
+// ══════════════════════════
+const DIALECT_ICON  = {PostgreSQL:'hci-pg',MySQL:'hci-my',SQLite:'hci-sq',BigQuery:'hci-bq'};
+const DIALECT_PILL  = {PostgreSQL:'hcp-pg',MySQL:'hcp-my',SQLite:'hcp-sq',BigQuery:'hcp-bq'};
+
+function setHFilter(f, btn) {
+  histFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('fp-active'));
+  btn.classList.add('fp-active');
+  renderHistory();
+}
+
+function renderHistory() {
+  const q     = document.getElementById('histSearch').value.toLowerCase();
+  const sort  = document.getElementById('histSort').value;
+  let list    = queryHistory.filter(e => {
+    if (histFilter==='starred' && !e.starred) return false;
+    if (q && !e.prompt.toLowerCase().includes(q) && !e.sql.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (sort==='oldest')  list = [...list].reverse();
+  if (sort==='dialect') list = [...list].sort((a,b)=>a.dialect.localeCompare(b.dialect));
+
+  document.getElementById('histSub').textContent = `${list.length} quer${list.length!==1?'ies':'y'} saved`;
+  document.getElementById('hStatTotal').textContent   = list.length;
+  document.getElementById('hStatStarred').textContent = list.filter(e=>e.starred).length;
+  document.getElementById('hStatDialects').textContent= new Set(list.map(e=>e.dialect)).size;
+  document.getElementById('hStatTables').textContent  = new Set(list.flatMap(e=>e.tables)).size;
+
+  const container = document.getElementById('histList');
+  if (!list.length) {
+    container.innerHTML = `<div class="hist-empty"><i class="ti ti-history" style="font-size:38px;display:block;margin-bottom:10px;" aria-hidden="true"></i><div style="font-size:15px;color:rgba(255,255,255,0.35);font-weight:500;">No queries yet</div><div style="font-size:13px;margin-top:4px;">Generate some SQL and save it!</div></div>`;
+    return;
+  }
+  container.innerHTML = list.map(e => `
+    <div class="hist-card ${expandedHistId===e.id?'hc-open':''}" onclick="toggleHist(${e.id})">
+      <div class="hc-top">
+        <div class="hc-icon ${DIALECT_ICON[e.dialect]||'hci-pg'}"><i class="ti ti-database" aria-hidden="true"></i></div>
+        <div class="hc-main">
+          <div class="hc-prompt">${e.prompt}</div>
+          <div class="hc-meta">
+            <span class="hc-pill ${DIALECT_PILL[e.dialect]||'hcp-pg'}">${e.dialect}</span>
+            <span class="hc-time"><i class="ti ti-clock" style="font-size:11px;margin-right:2px;" aria-hidden="true"></i>${e.time}</span>
+            <span class="hc-time"><i class="ti ti-table" style="font-size:11px;margin-right:2px;" aria-hidden="true"></i>${e.tables.join(', ')}</span>
+          </div>
+        </div>
+        <div class="hc-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn ${e.starred?'ibstar':''}" onclick="toggleStar(${e.id})" aria-label="Star"><i class="ti ti-star" style="font-size:13px;" aria-hidden="true"></i></button>
+          <button class="icon-btn" onclick="copyHist(${e.id})" aria-label="Copy"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i></button>
+          <button class="icon-btn" onclick="dlHist(${e.id})" aria-label="Download"><i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i></button>
+          <button class="icon-btn ibdanger" onclick="delHist(${e.id})" aria-label="Delete"><i class="ti ti-trash" style="font-size:13px;" aria-hidden="true"></i></button>
+          <i class="ti ti-chevron-down" style="font-size:13px;color:rgba(255,255,255,0.24);transition:transform 0.2s;${expandedHistId===e.id?'transform:rotate(180deg)':''}" aria-hidden="true"></i>
+        </div>
+      </div>
+      <div class="hc-expanded">
+        <div class="sql-pre">${hl(e.sql)}</div>
+        <div class="hce-actions">
+          <button class="hcea-btn hcea-primary" onclick="reuseQuery(${e.id})"><i class="ti ti-player-play" style="font-size:12px;" aria-hidden="true"></i> Reuse in generator</button>
+          <button class="hcea-btn" onclick="copyHist(${e.id})"><i class="ti ti-copy" style="font-size:12px;" aria-hidden="true"></i> Copy SQL</button>
+          <button class="hcea-btn" onclick="dlHist(${e.id})"><i class="ti ti-download" style="font-size:12px;" aria-hidden="true"></i> Export .sql</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleHist(id)  { expandedHistId = expandedHistId===id ? null : id; renderHistory(); }
+function toggleStar(id)  { const e=queryHistory.find(x=>x.id===id); if(e){e.starred=!e.starred; renderHistory();} }
+function copyHist(id)    { const e=queryHistory.find(x=>x.id===id); if(e) navigator.clipboard.writeText(e.sql).then(()=>showToast('Copied!')); }
+function dlHist(id)      { const e=queryHistory.find(x=>x.id===id); if(!e) return; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([e.sql],{type:'text/plain'})); a.download=`query_${id}.sql`; a.click(); }
+function delHist(id)     { queryHistory=queryHistory.filter(x=>x.id!==id); if(expandedHistId===id) expandedHistId=null; renderHistory(); }
+function clearHistory()  { if(confirm('Clear all history?')){ queryHistory=[]; expandedHistId=null; renderHistory(); } }
+function reuseQuery(id)  {
+  const e = queryHistory.find(x=>x.id===id); if(!e) return;
+  document.getElementById('genPrompt').value = e.prompt;
+  navigate('generator');
+}
+
+// ══════════════════════════
+//  LANDING TYPEWRITER
+// ══════════════════════════
+const phrases = [
+  'Show top 10 customers by revenue last 30 days',
+  'Find all orders where status is pending',
+  'Count users who signed up this week',
+  'Get average order value by country',
+];
+let pi=0, ci=0, del=false;
+const tel = document.getElementById('typed');
+function typeWriter() {
+  const phrase = phrases[pi];
+  if (!del) {
+    tel.textContent = phrase.slice(0, ci+1); ci++;
+    if (ci===phrase.length) { setTimeout(()=>{del=true;typeWriter();},2000); return; }
+  } else {
+    tel.textContent = phrase.slice(0, ci-1); ci--;
+    if (ci===0) { del=false; pi=(pi+1)%phrases.length; }
+  }
+  setTimeout(typeWriter, del?36:54);
+}
+typeWriter();
+
+// init
+renderSchema();
+navigate('landing');
+</script>
+</body>
+</html>
