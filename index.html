@@ -373,7 +373,7 @@
   <div class="nav-right">
     <button class="btn-nav-key" id="apiKeyBtn" onclick="openKeyModal()">
       <i class="ti ti-key" style="font-size:13px;" aria-hidden="true"></i>
-      <span id="keyBtnLabel">Add API key</span>
+      <span id="keyBtnLabel">Add Gemini key</span>
     </button>
     <button class="btn-primary-nav" onclick="navigate('schema')">Get started →</button>
   </div>
@@ -422,7 +422,7 @@
       <div class="cta-box">
         <h2>Ready to stop guessing SQL?</h2>
         <p>Add your Anthropic API key and generate your first query in seconds.</p>
-        <button class="btn btn-purple" onclick="openKeyModal()"><i class="ti ti-key" aria-hidden="true"></i> Add API key to start</button>
+        <button class="btn btn-purple" onclick="openKeyModal()"><i class="ti ti-key" aria-hidden="true"></i> Add free Gemini key to start</button>
       </div>
     </section>
   </div>
@@ -569,11 +569,11 @@
 <!-- ── API Key Modal ── -->
 <div class="modal-bg" id="keyModal">
   <div class="modal">
-    <div class="modal-title">Add your Anthropic API key</div>
-    <div class="modal-sub">Your key is stored only in your browser's memory and never sent anywhere except the Anthropic API.</div>
-    <input class="modal-input" id="keyInput" type="password" placeholder="sk-ant-api03-...">
+    <div class="modal-title">Add your Gemini API key</div>
+    <div class="modal-sub">Your key is stored only in your browser's memory and never sent anywhere except the Google Gemini API. It's free — no credit card needed.</div>
+    <input class="modal-input" id="keyInput" type="password" placeholder="AIzaSy...">
     <div class="modal-note">
-      Don't have a key? Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. The key is used only to call the Claude API to generate SQL.
+      Don't have a key? Get one free at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> — sign in with Google, click "Create API key". Takes 30 seconds.
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-sm" onclick="closeKeyModal()">Cancel</button>
@@ -653,12 +653,12 @@ function saveKey() {
   const lbl = document.getElementById('keyBtnLabel');
   if (apiKey) {
     btn.classList.add('key-set');
-    lbl.textContent = 'Key saved ✓';
+    lbl.textContent = 'Gemini key saved ✓';
   } else {
     btn.classList.remove('key-set');
-    lbl.textContent = 'Add API key';
+    lbl.textContent = 'Add Gemini key';
   }
-  showToast(apiKey ? 'API key saved!' : 'API key cleared');
+  showToast(apiKey ? 'Gemini API key saved!' : 'API key cleared');
 }
 document.getElementById('keyModal').addEventListener('click', e => {
   if (e.target === document.getElementById('keyModal')) closeKeyModal();
@@ -813,14 +813,7 @@ async function generate() {
   out.innerHTML = '<div class="ldots"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key': apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role:'user', content:
-          `You are a SQL expert. Given the database schema and a plain English request, generate perfect SQL.
+    const geminiPrompt = `You are a SQL expert. Given the database schema and a plain English request, generate perfect SQL.
 
 Schema:
 ${buildSchemaString()}
@@ -828,7 +821,7 @@ ${buildSchemaString()}
 Dialect: ${currentDialect}
 Request: ${prompt}
 
-Respond ONLY with valid JSON — no markdown, no preamble:
+Respond ONLY with valid JSON — no markdown, no preamble, no code fences:
 {
   "sql": "the full SQL query",
   "clauses": [
@@ -841,13 +834,23 @@ Respond ONLY with valid JSON — no markdown, no preamble:
     {"clause":"LIMIT","explanation":"row limit"}
   ],
   "warning": "short warning if ambiguous or could be slow, else empty string"
-}`
-        }]
-      })
-    });
+}`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: geminiPrompt }] }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+        })
+      }
+    );
 
     const data = await res.json();
-    const text = data.content[0].text;
+    if (data.error) throw new Error(data.error.message);
+    const text = data.candidates[0].content.parts[0].text;
     const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
     currentSQL = parsed.sql;
     renderSQLOutput(parsed);
