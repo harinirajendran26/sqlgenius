@@ -5,466 +5,461 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQLGenius — Text to SQL</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  /* ── Reset & Base ── */
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    font-family: 'Inter', sans-serif;
-    background: #0a0a0f;
-    color: #e8e8f0;
-    overflow-x: hidden;
-  }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Inter',sans-serif;background:#100608;color:#f0e6e0;overflow-x:hidden;}
 
-  /* ── Page Router ── */
-  .page { display: none; min-height: 100vh; }
-  .page.active { display: flex; flex-direction: column; }
+:root{
+  --crimson:#A0001C;--burgundy:#6B0F1A;--maroon:#3D0000;--deep:#1A0505;
+  --sand:#C9A87C;--taupe:#7A6652;--linen:#E8D5B7;
+  --card:#1E0C0E;--card2:#250D10;
+  --border:rgba(169,0,28,0.22);--border2:rgba(201,168,124,0.18);
+  --glow:rgba(160,0,28,0.35);--glow2:rgba(201,168,124,0.2);
+  --muted:rgba(240,220,210,0.45);--dim:rgba(240,220,210,0.25);
+}
 
-  /* ── Shared Nav ── */
-  nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 40px; height: 58px; flex-shrink: 0;
-    background: rgba(10,10,15,0.9);
-    border-bottom: 0.5px solid rgba(255,255,255,0.07);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .nav-logo { display: flex; align-items: center; gap: 9px; cursor: pointer; text-decoration: none; }
-  .logo-icon {
-    width: 28px; height: 28px; border-radius: 8px;
-    background: linear-gradient(135deg, #7c3aed, #2563eb);
-    display: flex; align-items: center; justify-content: center; font-size: 14px;
-  }
-  .logo-text { font-size: 16px; font-weight: 700; background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .nav-links { display: flex; gap: 4px; }
-  .nav-link {
-    padding: 5px 14px; border-radius: 99px; font-size: 12.5px;
-    color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s;
-    border: 0.5px solid transparent; background: none;
-  }
-  .nav-link:hover { color: rgba(255,255,255,0.7); }
-  .nav-link.active { background: rgba(124,58,237,0.15); color: #a78bfa; border-color: rgba(124,58,237,0.3); }
-  .nav-right { display: flex; gap: 8px; align-items: center; }
-  .btn-nav-key {
-    padding: 6px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
-    background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.5); transition: all 0.2s; display: flex; align-items: center; gap: 5px;
-  }
-  .btn-nav-key:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
-  .btn-nav-key.key-set { border-color: rgba(52,211,153,0.3); color: #34d399; background: rgba(52,211,153,0.06); }
-  .btn-primary-nav {
-    padding: 7px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
-    background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff;
-    cursor: pointer; transition: transform 0.15s;
-  }
-  .btn-primary-nav:hover { transform: translateY(-1px); }
+/* ── Animated BG ── */
+.bg-wrap{position:fixed;inset:0;z-index:0;overflow:hidden;}
+.bg-base{position:absolute;inset:0;background:radial-gradient(ellipse 90% 70% at 15% 10%,rgba(107,15,26,0.55) 0%,transparent 55%),radial-gradient(ellipse 70% 90% at 85% 90%,rgba(61,0,0,0.5) 0%,transparent 55%),radial-gradient(ellipse 60% 60% at 50% 50%,rgba(26,5,5,0.8) 0%,transparent 80%),#100608;animation:bgMove 14s ease-in-out infinite alternate;}
+@keyframes bgMove{0%{background-position:0% 0%;}100%{background-position:100% 100%;}}
+.bg-grain{position:absolute;inset:0;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px 200px;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(160,0,28,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(160,0,28,0.05) 1px,transparent 1px);background-size:56px 56px;}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);animation:blobDrift 18s ease-in-out infinite alternate;}
+.blob1{width:600px;height:600px;background:radial-gradient(circle,rgba(107,15,26,0.4),transparent 70%);top:-200px;left:-150px;animation-delay:0s;}
+.blob2{width:500px;height:500px;background:radial-gradient(circle,rgba(61,0,0,0.35),transparent 70%);bottom:-150px;right:-100px;animation-delay:-7s;}
+.blob3{width:350px;height:350px;background:radial-gradient(circle,rgba(201,168,124,0.12),transparent 70%);top:40%;left:55%;animation-delay:-13s;}
+@keyframes blobDrift{0%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-30px) scale(1.06);}66%{transform:translate(-20px,50px) scale(0.95);}100%{transform:translate(30px,20px) scale(1.08);}};
+canvas#ptx{position:absolute;inset:0;width:100%;height:100%;}
 
-  /* ── Shared Utilities ── */
-  .bg-grid {
-    position: fixed; inset: 0;
-    background-image: linear-gradient(rgba(120,80,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(120,80,255,0.03) 1px,transparent 1px);
-    background-size: 48px 48px; pointer-events: none; z-index: 0;
-  }
-  .glow { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; opacity: 0.12; animation: orb 12s ease-in-out infinite alternate; }
-  .glow.a { width: 500px; height: 500px; background: #7c3aed; top: -120px; left: -100px; }
-  .glow.b { width: 380px; height: 380px; background: #2563eb; top: 40%; right: -80px; animation-delay: -5s; }
-  .glow.c { width: 300px; height: 300px; background: #0d9488; bottom: 40px; left: 35%; animation-delay: -9s; }
-  @keyframes orb { from{transform:translate(0,0)} to{transform:translate(20px,28px)} }
+/* ── Nav ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 44px;height:64px;flex-shrink:0;background:rgba(16,6,8,0.7);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(24px);}
+.nav-logo{display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none;}
+.logo-gem{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--crimson),var(--burgundy));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--glow);animation:gemPulse 3s ease-in-out infinite;}
+@keyframes gemPulse{0%,100%{box-shadow:0 0 18px var(--glow);}50%{box-shadow:0 0 36px var(--glow),0 0 60px rgba(160,0,28,0.2);}}
+.logo-text{font-size:18px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(90deg,var(--linen),var(--sand),var(--crimson));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:flex;gap:4px;}
+.nav-link{padding:7px 18px;border-radius:99px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.25s;border:1px solid transparent;background:none;}
+.nav-link:hover{color:var(--linen);background:rgba(160,0,28,0.1);}
+.nav-link.active{background:rgba(160,0,28,0.18);color:var(--sand);border-color:rgba(160,0,28,0.4);}
+.nav-right{display:flex;gap:10px;align-items:center;}
+.btn-key{padding:8px 18px;border-radius:10px;font-size:13px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid var(--border2);color:var(--muted);transition:all 0.25s;display:flex;align-items:center;gap:6px;}
+.btn-key:hover{background:rgba(201,168,124,0.1);border-color:rgba(201,168,124,0.35);color:var(--sand);}
+.btn-key.key-set{border-color:rgba(52,211,153,0.4);color:#4ade80;background:rgba(52,211,153,0.07);}
+.btn-start{padding:8px 22px;border-radius:10px;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--crimson),var(--burgundy));border:none;color:#fff;cursor:pointer;transition:all 0.25s;box-shadow:0 0 16px var(--glow);}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 28px var(--glow);}
 
-  .scroll-content { flex: 1; overflow-y: auto; position: relative; z-index: 1; }
-  .scroll-content::-webkit-scrollbar { width: 4px; }
-  .scroll-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+/* ── Pages ── */
+.page{display:none;min-height:100vh;position:relative;z-index:1;}
+.page.active{display:flex;flex-direction:column;}
+.scroll-view{flex:1;overflow-y:auto;}
+.scroll-view::-webkit-scrollbar{width:4px;}
+.scroll-view::-webkit-scrollbar-thumb{background:rgba(160,0,28,0.3);border-radius:2px;}
 
-  /* ── Buttons ── */
-  .btn { padding: 10px 22px; border-radius: 9px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px; }
-  .btn-purple { background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff; }
-  .btn-purple:hover { transform: translateY(-2px); }
-  .btn-ghost { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); }
-  .btn-ghost:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
-  .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 7px; }
-  .btn-danger { background: rgba(226,75,74,0.08); border: 0.5px solid rgba(226,75,74,0.2); color: #f09595; }
-  .btn-danger:hover { background: rgba(226,75,74,0.14); }
+/* ── Buttons ── */
+.btn{padding:12px 26px;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.25s;display:inline-flex;align-items:center;gap:8px;font-family:inherit;}
+.btn-primary{background:linear-gradient(135deg,var(--crimson),var(--burgundy));border:none;color:#fff;box-shadow:0 0 22px var(--glow);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 8px 32px var(--glow);}
+.btn-outline{background:rgba(255,255,255,0.04);border:1px solid var(--border2);color:var(--linen);}
+.btn-outline:hover{background:rgba(201,168,124,0.08);border-color:var(--sand);color:var(--sand);}
+.btn-sm{padding:8px 18px;font-size:12.5px;border-radius:9px;}
+.btn-danger{background:rgba(220,50,50,0.08);border:1px solid rgba(220,50,50,0.25);color:#f09595;}
+.btn-danger:hover{background:rgba(220,50,50,0.16);}
 
-  /* ── API Key Modal ── */
-  .modal-bg {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    z-index: 200; align-items: center; justify-content: center;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: #13131f; border: 0.5px solid rgba(124,58,237,0.25);
-    border-radius: 16px; padding: 28px; width: 440px; max-width: 92vw;
-  }
-  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-  .modal-sub { font-size: 13px; color: rgba(255,255,255,0.38); margin-bottom: 20px; line-height: 1.5; }
-  .modal-input {
-    width: 100%; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.12);
-    border-radius: 9px; padding: 10px 14px; font-size: 13px; color: #e8e8f0;
-    outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 14px;
-    transition: border-color 0.2s;
-  }
-  .modal-input:focus { border-color: rgba(124,58,237,0.5); }
-  .modal-input::placeholder { color: rgba(255,255,255,0.2); font-family: 'Inter',sans-serif; }
-  .modal-note { font-size: 11.5px; color: rgba(255,255,255,0.25); margin-bottom: 20px; line-height: 1.5; }
-  .modal-note a { color: #a78bfa; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid rgba(160,0,28,0.35);border-radius:20px;padding:32px;width:460px;max-width:92vw;box-shadow:0 0 80px rgba(160,0,28,0.2);}
+.modal-title{font-size:20px;font-weight:900;margin-bottom:7px;background:linear-gradient(90deg,var(--linen),var(--sand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+.modal-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:12px 15px;font-size:13px;color:#f0e6e0;outline:none;font-family:'JetBrains Mono',monospace;margin-bottom:14px;transition:border-color 0.2s;}
+.modal-input:focus{border-color:rgba(160,0,28,0.55);}
+.modal-input::placeholder{color:var(--dim);font-family:'Inter',sans-serif;}
+.modal-note{font-size:12px;color:var(--dim);margin-bottom:22px;line-height:1.6;}
+.modal-note a{color:var(--sand);text-decoration:none;}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end;}
 
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 300;
-    background: #1a1a2e; border: 0.5px solid rgba(124,58,237,0.3); border-radius: 10px;
-    padding: 10px 18px; font-size: 13px; color: #a78bfa;
-    opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateY(0); }
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;right:28px;z-index:300;background:var(--card2);border:1px solid rgba(160,0,28,0.45);border-radius:13px;padding:12px 22px;font-size:13px;font-weight:500;color:var(--sand);opacity:0;transform:translateY(12px);transition:all 0.35s;pointer-events:none;box-shadow:0 4px 24px rgba(160,0,28,0.25);}
+.toast.show{opacity:1;transform:translateY(0);}
 
-  /* ════════════════════════════
-     PAGE 1 — LANDING
-  ════════════════════════════ */
-  #page-landing { background: transparent; }
-  .hero {
-    min-height: calc(100vh - 58px); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center;
-    padding: 80px 32px 60px; position: relative; z-index: 1;
-  }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: rgba(124,58,237,0.1); border: 0.5px solid rgba(124,58,237,0.3);
-    border-radius: 99px; padding: 5px 16px; font-size: 12.5px; color: #a78bfa;
-    margin-bottom: 30px; animation: fadeUp 0.5s ease both;
-  }
-  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #a78bfa; animation: pulse 1.8s ease infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .hero-title {
-    font-size: 62px; font-weight: 800; line-height: 1.08; letter-spacing: -2.5px;
-    margin-bottom: 22px; animation: fadeUp 0.5s 0.08s ease both;
-  }
-  .hero-title .muted { color: rgba(255,255,255,0.22); }
-  .hero-title .grad { background: linear-gradient(90deg,#a78bfa 0%,#60a5fa 50%,#34d399 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .hero-sub { font-size: 17px; color: rgba(255,255,255,0.42); max-width: 480px; line-height: 1.65; margin-bottom: 38px; animation: fadeUp 0.5s 0.16s ease both; }
-  .hero-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 60px; animation: fadeUp 0.5s 0.24s ease both; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+/* ════════════════ LANDING ════════════════ */
+.hero{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;background:rgba(160,0,28,0.12);border:1px solid rgba(160,0,28,0.38);border-radius:99px;padding:7px 20px;font-size:12.5px;font-weight:600;color:var(--sand);margin-bottom:36px;animation:fadeUp 0.5s ease both;}
+.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--crimson);animation:eyePulse 1.8s ease infinite;}
+@keyframes eyePulse{0%,100%{opacity:1;box-shadow:0 0 5px var(--crimson);}50%{opacity:0.4;box-shadow:0 0 14px var(--crimson);}}
+.hero-h1{font-size:72px;font-weight:900;line-height:1.03;letter-spacing:-3px;margin-bottom:26px;animation:fadeUp 0.5s 0.08s ease both;}
+.hero-h1 .dim{color:rgba(240,220,210,0.18);}
+.hero-h1 .shine{background:linear-gradient(100deg,var(--linen) 0%,var(--sand) 35%,var(--crimson) 70%,var(--burgundy) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shineShift 6s ease-in-out infinite alternate;}
+@keyframes shineShift{0%{filter:hue-rotate(0deg) brightness(1);}100%{filter:hue-rotate(8deg) brightness(1.1);}}
+.hero-sub{font-size:18px;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:42px;animation:fadeUp 0.5s 0.15s ease both;}
+.hero-btns{display:flex;gap:14px;justify-content:center;margin-bottom:72px;animation:fadeUp 0.5s 0.22s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 
-  .code-demo {
-    width: 100%; max-width: 660px; background: rgba(255,255,255,0.025);
-    border: 0.5px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden;
-    text-align: left; animation: fadeUp 0.5s 0.35s ease both;
-  }
-  .code-demo-header {
-    padding: 10px 16px; background: rgba(255,255,255,0.03);
-    border-bottom: 0.5px solid rgba(255,255,255,0.06);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .dot-r{width:10px;height:10px;border-radius:50%;background:#ff5f57;}
-  .dot-y{width:10px;height:10px;border-radius:50%;background:#ffbd2e;}
-  .dot-g{width:10px;height:10px;border-radius:50%;background:#28c840;}
-  .demo-tab { margin-left: 10px; padding: 3px 12px; border-radius: 5px; font-size: 11.5px; background: rgba(124,58,237,0.18); color: #a78bfa; }
-  .code-demo-body { padding: 18px 20px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; line-height: 1.9; }
-  .nl-box { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 9px 13px; font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .cursor-blink { display: inline-block; width: 2px; height: 14px; background: #a78bfa; animation: blink 1s step-end infinite; vertical-align: middle; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+/* floating code window */
+.code-window{width:100%;max-width:720px;border-radius:18px;overflow:hidden;border:1px solid var(--border);background:rgba(30,12,14,0.85);box-shadow:0 0 60px rgba(160,0,28,0.18),0 30px 80px rgba(0,0,0,0.5);animation:fadeUp 0.5s 0.32s ease both,float 6s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.win-bar{display:flex;align-items:center;gap:8px;padding:13px 20px;background:rgba(255,255,255,0.025);border-bottom:1px solid var(--border);}
+.win-dot{width:12px;height:12px;border-radius:50%;}
+.win-dot.r{background:#ff5f57;box-shadow:0 0 7px #ff5f57;}
+.win-dot.y{background:#febc2e;box-shadow:0 0 7px #febc2e;}
+.win-dot.g{background:#28c840;box-shadow:0 0 7px #28c840;}
+.win-tab{margin-left:12px;padding:4px 14px;border-radius:6px;font-size:12px;background:rgba(160,0,28,0.2);color:var(--sand);border:1px solid rgba(160,0,28,0.3);}
+.win-body{padding:22px 26px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2.05;text-align:left;}
+.nl-row{background:rgba(201,168,124,0.06);border:1px solid var(--border2);border-radius:9px;padding:11px 16px;font-size:13.5px;color:rgba(240,220,200,0.6);margin-bottom:18px;display:flex;align-items:center;gap:9px;font-family:'Inter',sans-serif;}
+.caret{display:inline-block;width:2px;height:15px;background:var(--sand);animation:caret 1s step-end infinite;vertical-align:middle;}
+@keyframes caret{0%,100%{opacity:1}50%{opacity:0}}
+.kw{color:#E07070;font-weight:600;}.fn{color:#E8C97A;}.str{color:#78C89A;}.num{color:#C99AE8;}.cm{color:rgba(240,220,200,0.22);font-style:italic;}
 
-  .features-section { padding: 80px 40px; max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
-  .section-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #a78bfa; margin-bottom: 10px; }
-  .section-heading { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
-  .section-sub { font-size: 15px; color: rgba(255,255,255,0.38); margin-bottom: 44px; }
-  .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .feat-card {
-    background: rgba(255,255,255,0.025); border: 0.5px solid rgba(255,255,255,0.07);
-    border-radius: 14px; padding: 22px; transition: all 0.25s; cursor: default;
-  }
-  .feat-card:hover { border-color: rgba(124,58,237,0.28); background: rgba(124,58,237,0.04); transform: translateY(-3px); }
-  .feat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 13px; }
-  .fi-purple { background: rgba(124,58,237,0.14); color: #a78bfa; }
-  .fi-blue   { background: rgba(37,99,235,0.14);  color: #60a5fa; }
-  .fi-teal   { background: rgba(13,148,136,0.14); color: #2dd4bf; }
-  .fi-amber  { background: rgba(217,119,6,0.14);  color: #fbbf24; }
-  .feat-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
-  .feat-desc  { font-size: 12.5px; color: rgba(255,255,255,0.35); line-height: 1.65; }
+/* ── stat pills ── */
+.stat-row{display:flex;gap:14px;justify-content:center;margin-bottom:80px;flex-wrap:wrap;animation:fadeUp 0.5s 0.42s ease both;}
+.stat-pill{display:flex;align-items:center;gap:10px;background:rgba(30,12,14,0.7);border:1px solid var(--border);border-radius:14px;padding:14px 22px;backdrop-filter:blur(10px);transition:all 0.3s;}
+.stat-pill:hover{border-color:rgba(160,0,28,0.45);transform:translateY(-4px);box-shadow:0 8px 28px rgba(160,0,28,0.15);}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.si-red{background:rgba(160,0,28,0.18);color:var(--crimson);}
+.si-sand{background:rgba(201,168,124,0.14);color:var(--sand);}
+.si-linen{background:rgba(232,213,183,0.12);color:var(--linen);}
+.stat-info .stat-num{font-size:20px;font-weight:800;color:var(--linen);letter-spacing:-0.5px;}
+.stat-info .stat-lbl{font-size:11.5px;color:var(--muted);margin-top:1px;}
 
-  .cta-section { max-width: 880px; margin: 0 auto 80px; padding: 0 40px; position: relative; z-index: 1; }
-  .cta-box {
-    background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(37,99,235,0.07));
-    border: 0.5px solid rgba(124,58,237,0.2); border-radius: 20px;
-    padding: 48px 40px; text-align: center;
-  }
-  .cta-box h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 10px; }
-  .cta-box p  { font-size: 14.5px; color: rgba(255,255,255,0.38); margin-bottom: 28px; }
+/* features */
+.features-wrap{max-width:960px;margin:0 auto;padding:0 40px 100px;}
+.sec-eyebrow{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--crimson);margin-bottom:12px;}
+.sec-h2{font-size:40px;font-weight:900;letter-spacing:-1.2px;margin-bottom:10px;background:linear-gradient(90deg,var(--linen),var(--sand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sec-sub{font-size:15px;color:var(--muted);margin-bottom:52px;}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.feat-card{padding:30px;border-radius:18px;background:var(--card);border:1px solid var(--border);transition:all 0.3s;cursor:default;position:relative;overflow:hidden;}
+.feat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(160,0,28,0.07),transparent);opacity:0;transition:opacity 0.3s;}
+.feat-card:hover{border-color:rgba(160,0,28,0.45);transform:translateY(-6px);box-shadow:0 16px 48px rgba(160,0,28,0.18);}
+.feat-card:hover::after{opacity:1;}
+.feat-big-icon{font-size:42px;margin-bottom:18px;display:block;animation:iconBob 3s ease-in-out infinite;}
+@keyframes iconBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.feat-card:nth-child(2) .feat-big-icon{animation-delay:-0.8s;}
+.feat-card:nth-child(3) .feat-big-icon{animation-delay:-1.6s;}
+.feat-card:nth-child(4) .feat-big-icon{animation-delay:-2.4s;}
+.feat-title{font-size:16px;font-weight:700;color:var(--linen);margin-bottom:9px;position:relative;}
+.feat-desc{font-size:13.5px;color:var(--muted);line-height:1.7;position:relative;}
+.feat-tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;margin-bottom:14px;background:rgba(160,0,28,0.14);color:var(--crimson);border:1px solid rgba(160,0,28,0.25);}
 
-  /* ════════════════════════════
-     PAGE 2 — SCHEMA BUILDER
-  ════════════════════════════ */
-  #page-schema { background: transparent; }
-  .schema-layout { display: grid; grid-template-columns: 260px 1fr; flex: 1; overflow: hidden; position: relative; z-index: 1; }
-  .schema-sidebar { background: rgba(255,255,255,0.02); border-right: 0.5px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; }
-  .sidebar-top { padding: 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); }
-  .sidebar-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 10px; }
-  .btn-add-table { width: 100%; padding: 8px; border-radius: 8px; background: rgba(124,58,237,0.08); border: 0.5px dashed rgba(124,58,237,0.32); color: #a78bfa; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-add-table:hover { background: rgba(124,58,237,0.16); }
-  .table-list { flex: 1; overflow-y: auto; padding: 8px; }
-  .table-list::-webkit-scrollbar { width: 3px; }
-  .table-item { padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; border: 0.5px solid transparent; }
-  .table-item:hover { background: rgba(255,255,255,0.04); }
-  .table-item.tbl-active { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); }
-  .tbl-left { display: flex; align-items: center; gap: 8px; }
-  .tbl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .tbl-name { font-size: 13px; font-weight: 500; }
-  .tbl-count { font-size: 11px; color: rgba(255,255,255,0.28); margin-top: 1px; }
-  .tbl-del { opacity: 0; background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; padding: 2px 5px; font-size: 13px; transition: opacity 0.2s; }
-  .table-item:hover .tbl-del { opacity: 1; }
+/* cta */
+.cta-wrap{max-width:960px;margin:0 auto 100px;padding:0 40px;}
+.cta-box{border-radius:24px;padding:60px 50px;text-align:center;background:linear-gradient(135deg,rgba(107,15,26,0.35),rgba(61,0,0,0.25));border:1px solid rgba(160,0,28,0.3);position:relative;overflow:hidden;}
+.cta-box::before{content:'';position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:conic-gradient(from 0deg,transparent 0deg,rgba(160,0,28,0.06) 60deg,transparent 120deg);animation:ctaRot 16s linear infinite;}
+@keyframes ctaRot{to{transform:rotate(360deg);}}
+.cta-box h2{font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:14px;position:relative;background:linear-gradient(90deg,var(--linen),var(--sand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.cta-box p{font-size:15px;color:var(--muted);margin-bottom:32px;position:relative;}
 
-  .schema-main { display: flex; flex-direction: column; overflow: hidden; }
-  .schema-main-header { padding: 14px 22px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .schema-title-wrap { display: flex; align-items: center; gap: 10px; }
-  .col-table-wrap { flex: 1; overflow-y: auto; padding: 22px; }
-  .col-table-wrap::-webkit-scrollbar { width: 3px; }
-  .col-table { width: 100%; border-collapse: collapse; }
-  .col-table th { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.24); padding: 0 10px 12px; text-align: left; }
-  .col-table td { padding: 4px 5px; vertical-align: middle; }
-  .col-row:hover td { background: rgba(255,255,255,0.02); }
-  .col-input { background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: #e8e8f0; width: 100%; outline: none; transition: border-color 0.2s; font-family: inherit; }
-  .col-input:focus { border-color: rgba(124,58,237,0.4); }
-  .col-select { background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; color: #e8e8f0; outline: none; cursor: pointer; font-family: inherit; }
-  .col-select:focus { border-color: rgba(124,58,237,0.4); }
-  .toggle { width: 32px; height: 18px; border-radius: 9px; border: none; cursor: pointer; position: relative; transition: background 0.2s; }
-  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
-  .toggle.on::after { transform: translateX(14px); }
-  .toggle-pk { background: rgba(255,255,255,0.1); }
-  .toggle-pk.on { background: #7c3aed; }
-  .toggle-nn { background: rgba(255,255,255,0.1); }
-  .toggle-nn.on { background: #0d9488; }
-  .del-col { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; }
-  .del-col:hover { color: #f09595; background: rgba(226,75,74,0.1); }
-  .btn-add-col { background: none; border: 0.5px dashed rgba(255,255,255,0.12); border-radius: 6px; color: rgba(255,255,255,0.3); font-size: 12.5px; padding: 7px 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
-  .btn-add-col:hover { border-color: rgba(124,58,237,0.3); color: #a78bfa; background: rgba(124,58,237,0.06); }
-  .schema-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,0.2); text-align: center; padding: 40px; }
+/* ════════════════ SCHEMA ════════════════ */
+#page-schema{background:transparent;height:100vh;}
+.schema-wrap{display:grid;grid-template-columns:280px 1fr;flex:1;overflow:hidden;position:relative;z-index:1;}
+.s-sidebar{background:rgba(16,6,8,0.65);border-right:1px solid var(--border);display:flex;flex-direction:column;backdrop-filter:blur(16px);}
+.s-sidebar-top{padding:20px;border-bottom:1px solid var(--border);}
+.s-sidebar-lbl{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:13px;}
+.btn-add-tbl{width:100%;padding:10px;border-radius:10px;background:rgba(160,0,28,0.1);border:1px dashed rgba(160,0,28,0.4);color:var(--sand);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;}
+.btn-add-tbl:hover{background:rgba(160,0,28,0.2);box-shadow:0 0 18px rgba(160,0,28,0.2);}
+.tbl-list{flex:1;overflow-y:auto;padding:10px;}
+.tbl-list::-webkit-scrollbar{width:3px;}
+.tbl-list::-webkit-scrollbar-thumb{background:rgba(160,0,28,0.25);border-radius:2px;}
+.tbl-item{padding:11px 14px;border-radius:11px;cursor:pointer;transition:all 0.22s;display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;border:1px solid transparent;}
+.tbl-item:hover{background:rgba(160,0,28,0.08);}
+.tbl-item.tbl-active{background:rgba(160,0,28,0.15);border-color:rgba(160,0,28,0.35);}
+.tbl-left{display:flex;align-items:center;gap:10px;}
+.tbl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.tbl-name-txt{font-size:13.5px;font-weight:600;}
+.tbl-col-cnt{font-size:11px;color:var(--dim);margin-top:2px;}
+.tbl-del-btn{opacity:0;background:none;border:none;color:rgba(240,200,180,0.4);cursor:pointer;padding:3px 6px;font-size:13px;transition:opacity 0.2s;}
+.tbl-item:hover .tbl-del-btn{opacity:1;}
+.s-main{display:flex;flex-direction:column;overflow:hidden;}
+.s-main-hdr{padding:18px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(16,6,8,0.3);}
+.s-title-wrap{display:flex;align-items:center;gap:12px;}
+.col-wrap{flex:1;overflow-y:auto;padding:26px;}
+.col-wrap::-webkit-scrollbar{width:3px;}
+.col-tbl{width:100%;border-collapse:collapse;}
+.col-tbl th{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);padding:0 10px 14px;text-align:left;}
+.col-tbl td{padding:5px 5px;vertical-align:middle;}
+.col-row:hover td{background:rgba(160,0,28,0.04);border-radius:6px;}
+.c-input{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:13px;color:#f0e6e0;width:100%;outline:none;transition:border-color 0.2s;font-family:inherit;}
+.c-input:focus{border-color:rgba(160,0,28,0.5);}
+.c-select{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:12.5px;color:#f0e6e0;outline:none;cursor:pointer;font-family:inherit;}
+.c-select:focus{border-color:rgba(160,0,28,0.5);}
+.tog{width:34px;height:19px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background 0.25s;}
+.tog::after{content:'';position:absolute;top:2.5px;left:2.5px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform 0.25s;}
+.tog.on::after{transform:translateX(15px);}
+.tog-pk{background:rgba(255,255,255,0.12);}
+.tog-pk.on{background:var(--crimson);box-shadow:0 0 10px rgba(160,0,28,0.6);}
+.tog-nn{background:rgba(255,255,255,0.12);}
+.tog-nn.on{background:#0d9488;box-shadow:0 0 10px rgba(13,148,136,0.6);}
+.del-col-btn{background:none;border:none;color:rgba(240,200,180,0.25);cursor:pointer;font-size:14px;padding:4px 7px;border-radius:5px;transition:all 0.2s;}
+.del-col-btn:hover{color:#f09595;background:rgba(220,50,50,0.12);}
+.btn-add-col{background:none;border:1px dashed rgba(160,0,28,0.25);border-radius:7px;color:var(--dim);font-size:12.5px;padding:8px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;font-family:inherit;}
+.btn-add-col:hover{border-color:rgba(160,0,28,0.5);color:var(--sand);background:rgba(160,0,28,0.07);}
+.s-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--dim);text-align:center;padding:40px;}
+.s-empty-icon{font-size:56px;opacity:0.25;animation:iconBob 4s ease-in-out infinite;}
 
-  /* ════════════════════════════
-     PAGE 3 — GENERATOR
-  ════════════════════════════ */
-  #page-generator { background: transparent; }
-  .gen-layout { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; position: relative; z-index: 1; }
-  .gen-panel { display: flex; flex-direction: column; overflow: hidden; }
-  .gen-panel-left { border-right: 0.5px solid rgba(255,255,255,0.06); }
-  .panel-hdr { padding: 14px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  .panel-hdr-title { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
-  .dialect-pills { display: flex; gap: 5px; flex-wrap: wrap; }
-  .dpill { padding: 4px 11px; border-radius: 6px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.15s; }
-  .dpill.dpill-active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.35); color: #a78bfa; }
-  .schema-chips-bar { padding: 12px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; gap: 7px; flex-wrap: wrap; flex-shrink: 0; }
-  .schema-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); font-size: 11.5px; color: rgba(255,255,255,0.45); }
-  .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .gen-input-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-  .field-label { font-size: 12px; color: rgba(255,255,255,0.33); margin-bottom: 6px; }
-  .nl-textarea { width: 100%; min-height: 100px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; color: #e8e8f0; resize: vertical; outline: none; font-family: inherit; line-height: 1.6; transition: border-color 0.2s; }
-  .nl-textarea:focus { border-color: rgba(124,58,237,0.4); }
-  .nl-textarea::placeholder { color: rgba(255,255,255,0.18); }
-  .examples-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .ex-btn { padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.38); font-size: 11.5px; text-align: left; cursor: pointer; transition: all 0.2s; line-height: 1.4; }
-  .ex-btn:hover { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); color: rgba(255,255,255,0.7); }
-  .gen-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: linear-gradient(135deg,#7c3aed,#2563eb); border: none; color: #fff; cursor: pointer; transition: transform 0.15s, opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .gen-btn:hover { transform: translateY(-1px); }
-  .gen-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+/* ════════════════ GENERATOR ════════════════ */
+#page-generator{background:transparent;height:100vh;}
+.gen-wrap{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;position:relative;z-index:1;}
+.gen-left{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);background:rgba(16,6,8,0.3);}
+.gen-right{display:flex;flex-direction:column;overflow:hidden;}
+.pnl-hdr{padding:15px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.pnl-hdr-lbl{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);}
+.dpills{display:flex;gap:5px;flex-wrap:wrap;}
+.dpill{padding:5px 13px;border-radius:7px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:rgba(240,220,210,0.45);cursor:pointer;transition:all 0.2s;}
+.dpill.dpill-on{background:rgba(160,0,28,0.16);border-color:rgba(160,0,28,0.45);color:var(--sand);}
+.chips-bar{padding:13px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+.s-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:12px;color:rgba(240,220,210,0.5);}
+.chip-dot{width:7px;height:7px;border-radius:50%;}
+.gen-input-body{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;}
+.field-lbl{font-size:12px;font-weight:600;color:var(--dim);margin-bottom:8px;letter-spacing:0.4px;}
+.nl-area{width:100%;min-height:110px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:13.5px;color:#f0e6e0;resize:vertical;outline:none;font-family:inherit;line-height:1.65;transition:border-color 0.2s;}
+.nl-area:focus{border-color:rgba(160,0,28,0.55);box-shadow:0 0 0 3px rgba(160,0,28,0.08);}
+.nl-area::placeholder{color:var(--dim);}
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ex-btn{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(240,220,210,0.42);font-size:12px;text-align:left;cursor:pointer;transition:all 0.22s;line-height:1.5;font-family:inherit;}
+.ex-btn:hover{background:rgba(160,0,28,0.1);border-color:rgba(160,0,28,0.38);color:rgba(240,220,210,0.85);}
+.gen-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--crimson),var(--burgundy));border:none;color:#fff;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 0 24px rgba(160,0,28,0.4);font-family:inherit;letter-spacing:0.3px;}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(160,0,28,0.6);}
+.gen-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.gen-out{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;}
+.gen-out::-webkit-scrollbar{width:3px;}
+.gen-out::-webkit-scrollbar-thumb{background:rgba(160,0,28,0.25);border-radius:2px;}
+.out-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--dim);text-align:center;padding:40px;}
+.out-empty-icon{font-size:54px;opacity:0.2;animation:iconBob 5s ease-in-out infinite;}
+.code-card{background:rgba(30,12,14,0.9);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.code-card-top{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cc-left{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);}
+.d-tag{padding:3px 9px;border-radius:5px;background:rgba(160,0,28,0.18);color:var(--sand);font-size:11px;font-weight:700;border:1px solid rgba(160,0,28,0.3);}
+.cp-btn{padding:5px 12px;border-radius:7px;font-size:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border2);color:rgba(240,220,210,0.45);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;font-family:inherit;}
+.cp-btn:hover{background:rgba(201,168,124,0.1);border-color:rgba(201,168,124,0.35);color:var(--sand);}
+.cp-btn.copied{color:#4ade80;border-color:rgba(74,222,128,0.35);}
+.sql-blk{padding:20px 22px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:2;overflow-x:auto;}
+.exp-card{background:rgba(25,10,12,0.8);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.exp-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:7px;}
+.exp-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+.exp-row{display:flex;gap:12px;align-items:flex-start;}
+.exp-clause{flex-shrink:0;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(160,0,28,0.14);color:var(--sand);border:1px solid rgba(160,0,28,0.28);min-width:78px;text-align:center;}
+.exp-txt{font-size:13px;color:var(--muted);line-height:1.6;}
+.warn-box{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.28);border-radius:11px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:rgba(251,191,36,0.82);}
+.out-actions{display:flex;gap:9px;padding:0 22px 18px;flex-shrink:0;}
+.out-act-btn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:500;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(240,220,210,0.45);cursor:pointer;transition:all 0.22s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;}
+.out-act-btn:hover{background:rgba(160,0,28,0.12);border-color:rgba(160,0,28,0.38);color:var(--sand);}
+.ldots{display:flex;gap:7px;padding:28px;align-items:center;}
+.ldot{width:9px;height:9px;border-radius:50%;animation:ldot 1.3s ease infinite;}
+.ldot:nth-child(1){background:var(--crimson);animation-delay:0s;}
+.ldot:nth-child(2){background:var(--sand);animation-delay:.2s;}
+.ldot:nth-child(3){background:var(--linen);animation-delay:.4s;}
+@keyframes ldot{0%,80%,100%{transform:scale(0.5);opacity:0.3}40%{transform:scale(1.1);opacity:1}}
 
-  .gen-output { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-  .gen-output::-webkit-scrollbar { width: 3px; }
-  .gen-output::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
-  .output-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,0.18); text-align: center; padding: 40px; }
-  .code-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
-  .code-card-hdr { padding: 10px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; }
-  .code-card-hdr-left { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
-  .dtag { padding: 2px 8px; border-radius: 4px; background: rgba(124,58,237,0.14); color: #a78bfa; font-size: 10.5px; font-weight: 600; }
-  .copy-btn { padding: 4px 10px; border-radius: 6px; font-size: 11.5px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
-  .copy-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
-  .copy-btn.copied { color: #34d399; border-color: rgba(52,211,153,0.3); }
-  .sql-block { padding: 16px 18px; font-family: 'JetBrains Mono',monospace; font-size: 12px; line-height: 1.9; overflow-x: auto; }
-  .explain-card { background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; }
-  .explain-hdr { padding: 10px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.28); display: flex; align-items: center; gap: 6px; }
-  .explain-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-  .explain-row { display: flex; gap: 10px; align-items: flex-start; }
-  .explain-clause { flex-shrink: 0; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: 'JetBrains Mono',monospace; background: rgba(124,58,237,0.1); color: #a78bfa; border: 0.5px solid rgba(124,58,237,0.2); min-width: 72px; text-align: center; }
-  .explain-text { font-size: 12.5px; color: rgba(255,255,255,0.45); line-height: 1.55; }
-  .warn-card { background: rgba(251,191,36,0.05); border: 0.5px solid rgba(251,191,36,0.2); border-radius: 10px; padding: 10px 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: rgba(251,191,36,0.7); }
-  .out-actions { display: flex; gap: 8px; padding: 0 20px 16px; flex-shrink: 0; }
-  .out-action-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-  .out-action-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
-
-  /* loading dots */
-  .ldots { display: flex; gap: 5px; padding: 20px; }
-  .ldot { width: 7px; height: 7px; border-radius: 50%; background: #7c3aed; animation: ldot 1.2s ease infinite; }
-  .ldot:nth-child(2){animation-delay:.2s} .ldot:nth-child(3){animation-delay:.4s}
-  @keyframes ldot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
-
-  /* syntax highlight */
-  .kw{color:#c084fc;} .fn{color:#60a5fa;} .str{color:#34d399;} .num{color:#fb923c;} .cm{color:rgba(255,255,255,0.22);font-style:italic;}
-
-  /* ════════════════════════════
-     PAGE 4 — HISTORY
-  ════════════════════════════ */
-  #page-history .scroll-content { padding: 32px 40px; max-width: 960px; margin: 0 auto; }
-  .hist-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
-  .hist-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-  .hist-sub { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 4px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
-  .stat-card { background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px 16px; }
-  .stat-lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 6px; }
-  .stat-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-  .hist-toolbar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; }
-  .search-wrap { flex: 1; position: relative; }
-  .search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.24); font-size: 15px; pointer-events: none; }
-  .search-box { width: 100%; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 8px 12px 8px 34px; font-size: 13px; color: #e8e8f0; outline: none; transition: border-color 0.2s; font-family: inherit; }
-  .search-box:focus { border-color: rgba(124,58,237,0.4); }
-  .search-box::placeholder { color: rgba(255,255,255,0.2); }
-  .filter-pill { padding: 7px 14px; border-radius: 8px; font-size: 12.5px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.42); cursor: pointer; transition: all 0.15s; }
-  .filter-pill.fp-active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.3); color: #a78bfa; }
-  .sort-sel { background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 7px 12px; font-size: 12.5px; color: rgba(255,255,255,0.45); outline: none; cursor: pointer; font-family: inherit; }
-  .hist-list { display: flex; flex-direction: column; gap: 10px; }
-  .hist-card { background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-  .hist-card:hover { border-color: rgba(124,58,237,0.25); background: rgba(124,58,237,0.03); }
-  .hist-card.hc-open { border-color: rgba(124,58,237,0.3); }
-  .hc-top { padding: 13px 16px; display: flex; align-items: flex-start; gap: 12px; }
-  .hc-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
-  .hci-pg{background:rgba(124,58,237,0.12);color:#a78bfa;} .hci-my{background:rgba(37,99,235,0.12);color:#60a5fa;} .hci-sq{background:rgba(13,148,136,0.12);color:#34d399;} .hci-bq{background:rgba(217,119,6,0.12);color:#fbbf24;}
-  .hc-main { flex: 1; min-width: 0; }
-  .hc-prompt { font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.8); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hc-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .hc-pill { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-  .hcp-pg{background:rgba(124,58,237,0.1);color:#a78bfa;border:0.5px solid rgba(124,58,237,0.2);}
-  .hcp-my{background:rgba(37,99,235,0.1);color:#60a5fa;border:0.5px solid rgba(37,99,235,0.2);}
-  .hcp-sq{background:rgba(13,148,136,0.1);color:#34d399;border:0.5px solid rgba(13,148,136,0.2);}
-  .hcp-bq{background:rgba(217,119,6,0.1);color:#fbbf24;border:0.5px solid rgba(217,119,6,0.2);}
-  .hc-time { font-size: 11.5px; color: rgba(255,255,255,0.24); }
-  .hc-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
-  .icon-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.33); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
-  .icon-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
-  .icon-btn.ibdanger:hover { background: rgba(226,75,74,0.1); color: #f09595; }
-  .icon-btn.ibstar { color: #fbbf24; }
-  .hc-expanded { border-top: 0.5px solid rgba(255,255,255,0.06); padding: 14px 16px; display: none; }
-  .hc-open .hc-expanded { display: block; }
-  .sql-pre { font-family: 'JetBrains Mono',monospace; font-size: 11.5px; line-height: 1.8; color: rgba(255,255,255,0.5); background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; }
-  .hce-actions { display: flex; gap: 8px; margin-top: 10px; }
-  .hcea-btn { padding: 6px 14px; border-radius: 7px; font-size: 12px; background: rgba(255,255,255,0.03); border: 0.5px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.42); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
-  .hcea-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
-  .hcea-primary { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); color: #a78bfa; }
-  .hcea-primary:hover { background: rgba(124,58,237,0.18); }
-  .hist-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.2); }
+/* ════════════════ HISTORY ════════════════ */
+.hist-body{max-width:980px;margin:0 auto;padding:36px 36px 80px;}
+.hist-pg-title{font-size:26px;font-weight:900;letter-spacing:-0.7px;background:linear-gradient(90deg,var(--linen),var(--sand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hist-pg-sub{font-size:13.5px;color:var(--muted);margin-top:5px;}
+.hist-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+.stat-c{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:all 0.25s;}
+.stat-c:hover{border-color:rgba(160,0,28,0.4);transform:translateY(-4px);box-shadow:0 8px 28px rgba(160,0,28,0.14);}
+.sc-lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+.sc-val{font-size:26px;font-weight:900;letter-spacing:-0.5px;}
+.hist-toolbar{display:flex;gap:11px;margin-bottom:22px;align-items:center;}
+.srch-wrap{flex:1;position:relative;}
+.srch-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:15px;pointer-events:none;}
+.srch-box{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:10px 14px 10px 38px;font-size:13px;color:#f0e6e0;outline:none;transition:border-color 0.2s;font-family:inherit;}
+.srch-box:focus{border-color:rgba(160,0,28,0.45);}
+.srch-box::placeholder{color:var(--dim);}
+.f-pill{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(240,220,210,0.45);cursor:pointer;transition:all 0.2s;font-family:inherit;}
+.f-pill.f-on{background:rgba(160,0,28,0.16);border-color:rgba(160,0,28,0.45);color:var(--sand);}
+.sort-sel{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:13px;color:rgba(240,220,210,0.5);outline:none;cursor:pointer;font-family:inherit;}
+.hist-list{display:flex;flex-direction:column;gap:12px;}
+.h-card{background:var(--card);border:1px solid var(--border);border-radius:15px;overflow:hidden;cursor:pointer;transition:all 0.25s;}
+.h-card:hover{border-color:rgba(160,0,28,0.4);transform:translateY(-3px);box-shadow:0 8px 30px rgba(160,0,28,0.14);}
+.h-card.h-open{border-color:rgba(160,0,28,0.45);}
+.h-top{padding:16px 20px;display:flex;align-items:flex-start;gap:14px;}
+.h-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px;}
+.hi-pg{background:rgba(160,0,28,0.16);} .hi-my{background:rgba(201,168,124,0.14);} .hi-sq{background:rgba(13,148,136,0.14);} .hi-bq{background:rgba(255,215,0,0.12);}
+.h-main{flex:1;min-width:0;}
+.h-prompt{font-size:14px;font-weight:600;color:rgba(240,220,200,0.88);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.h-meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+.h-pill{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;}
+.hp-pg{background:rgba(160,0,28,0.14);color:var(--crimson);border:1px solid rgba(160,0,28,0.28);}
+.hp-my{background:rgba(201,168,124,0.12);color:var(--sand);border:1px solid rgba(201,168,124,0.25);}
+.hp-sq{background:rgba(13,148,136,0.12);color:#2dd4bf;border:1px solid rgba(13,148,136,0.25);}
+.hp-bq{background:rgba(255,215,0,0.1);color:#ffd700;border:1px solid rgba(255,215,0,0.22);}
+.h-time{font-size:12px;color:var(--dim);}
+.h-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.ico-btn{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:rgba(240,220,200,0.35);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s;}
+.ico-btn:hover{background:rgba(160,0,28,0.12);border-color:rgba(160,0,28,0.35);color:var(--sand);}
+.ico-btn.ib-star{color:#ffd700;}
+.ico-btn.ib-danger:hover{background:rgba(220,50,50,0.12);color:#f09595;border-color:rgba(220,50,50,0.28);}
+.h-exp{border-top:1px solid var(--border);padding:18px 20px;display:none;}
+.h-open .h-exp{display:block;}
+.sql-pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;color:rgba(240,220,200,0.55);background:rgba(0,0,0,0.3);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:pre;}
+.h-exp-acts{display:flex;gap:9px;margin-top:14px;}
+.hea-btn{padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:500;background:rgba(255,255,255,0.03);border:1px solid var(--border);color:rgba(240,220,210,0.45);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;font-family:inherit;}
+.hea-btn:hover{background:rgba(255,255,255,0.07);color:rgba(240,220,210,0.8);}
+.hea-primary{background:rgba(160,0,28,0.14);border-color:rgba(160,0,28,0.35);color:var(--sand);}
+.hea-primary:hover{background:rgba(160,0,28,0.24);}
+.hist-empty{text-align:center;padding:70px 20px;color:var(--dim);}
+.hist-empty-ico{font-size:52px;opacity:0.2;display:block;margin-bottom:14px;animation:iconBob 5s ease-in-out infinite;}
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="glow a"></div>
-<div class="glow b"></div>
-<div class="glow c"></div>
+<!-- ── BG ── -->
+<div class="bg-wrap">
+  <div class="bg-base"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-grid"></div>
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+  <canvas id="ptx"></canvas>
+</div>
 
-<!-- ── Shared Nav ── -->
-<nav id="main-nav">
+<!-- ── NAV ── -->
+<nav>
   <a class="nav-logo" onclick="navigate('landing')">
-    <div class="logo-icon">⚡</div>
+    <div class="logo-gem">⚡</div>
     <span class="logo-text">SQLGenius</span>
   </a>
   <div class="nav-links">
-    <button class="nav-link" id="nl-landing"  onclick="navigate('landing')">Home</button>
-    <button class="nav-link" id="nl-schema"   onclick="navigate('schema')">Schema</button>
+    <button class="nav-link" id="nl-landing"   onclick="navigate('landing')">Home</button>
+    <button class="nav-link" id="nl-schema"    onclick="navigate('schema')">Schema</button>
     <button class="nav-link" id="nl-generator" onclick="navigate('generator')">Generator</button>
-    <button class="nav-link" id="nl-history"  onclick="navigate('history')">History</button>
+    <button class="nav-link" id="nl-history"   onclick="navigate('history')">History</button>
   </div>
   <div class="nav-right">
-    <button class="btn-nav-key" id="apiKeyBtn" onclick="openKeyModal()">
-      <i class="ti ti-key" style="font-size:13px;" aria-hidden="true"></i>
+    <button class="btn-key" id="apiKeyBtn" onclick="openKeyModal()">
+      <i class="ti ti-key" style="font-size:13px;"></i>
       <span id="keyBtnLabel">Add Groq key</span>
     </button>
-    <button class="btn-primary-nav" onclick="navigate('schema')">Get started →</button>
+    <button class="btn-start" onclick="navigate('schema')">Get started →</button>
   </div>
 </nav>
 
 <!-- ════ PAGE 1: LANDING ════ -->
 <div class="page active" id="page-landing">
-  <div class="scroll-content">
+  <div class="scroll-view">
     <section class="hero">
-      <div class="hero-badge"><span class="badge-dot"></span> AI-powered · No SQL knowledge needed</div>
-      <h1 class="hero-title">
-        <span class="muted">Write SQL in</span><br>
-        <span class="grad">plain English</span>
+      <div class="hero-eyebrow"><span class="eyebrow-dot"></span> Powered by Llama 3.3 via Groq · Free · No SQL knowledge needed</div>
+      <h1 class="hero-h1">
+        <span class="dim">Stop writing</span><br>
+        <span class="shine">SQL by hand.</span>
       </h1>
-      <p class="hero-sub">Describe your tables, type what you need — SQLGenius writes the perfect query. Instantly.</p>
+      <p class="hero-sub">Describe your database, type what you want in plain English — SQLGenius writes perfect, production-ready SQL instantly.</p>
       <div class="hero-btns">
-        <button class="btn btn-purple" onclick="navigate('schema')"><i class="ti ti-arrow-right" aria-hidden="true"></i> Start building</button>
-        <button class="btn btn-ghost" onclick="navigate('generator')">Try generator</button>
+        <button class="btn btn-primary" onclick="navigate('schema')">🚀 Start building</button>
+        <button class="btn btn-outline" onclick="navigate('generator')">✨ Try generator</button>
       </div>
-      <div class="code-demo">
-        <div class="code-demo-header">
-          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
-          <div class="demo-tab">Query Generator</div>
+      <div class="code-window">
+        <div class="win-bar">
+          <div class="win-dot r"></div><div class="win-dot y"></div><div class="win-dot g"></div>
+          <div class="win-tab">Query Generator</div>
         </div>
-        <div class="code-demo-body">
-          <div class="nl-box">💬 &nbsp;<span id="typed"></span><span class="cursor-blink"></span></div>
+        <div class="win-body">
+          <div class="nl-row">💬 &nbsp;<span id="typed"></span><span class="caret"></span></div>
           <div><span class="kw">SELECT</span> <span class="fn">u.name</span>, <span class="fn">u.email</span>, <span class="fn">SUM</span>(<span class="fn">o.amount</span>) <span class="kw">AS</span> <span class="str">revenue</span></div>
-          <div><span class="kw">FROM</span> <span class="fn">users</span> <span class="fn">u</span> <span class="kw">JOIN</span> <span class="fn">orders</span> <span class="fn">o</span> <span class="kw">ON</span> <span class="fn">u.id</span> = <span class="fn">o.user_id</span></div>
+          <div><span class="kw">FROM</span> <span class="fn">users u</span> <span class="kw">JOIN</span> <span class="fn">orders o</span> <span class="kw">ON</span> <span class="fn">u.id</span> = <span class="fn">o.user_id</span></div>
           <div><span class="kw">WHERE</span> <span class="fn">o.created_at</span> >= <span class="fn">NOW</span>() - <span class="kw">INTERVAL</span> <span class="str">'30 days'</span></div>
           <div><span class="kw">GROUP BY</span> <span class="fn">u.id</span> <span class="kw">ORDER BY</span> <span class="str">revenue</span> <span class="kw">DESC LIMIT</span> <span class="num">10</span>;</div>
         </div>
       </div>
     </section>
-    <section class="features-section">
-      <div class="section-eyebrow">What you get</div>
-      <div class="section-heading">Everything you need</div>
-      <div class="section-sub">Built for engineers who want results, not syntax headaches.</div>
-      <div class="features-grid">
-        <div class="feat-card"><div class="feat-icon fi-purple"><i class="ti ti-sparkles" aria-hidden="true"></i></div><div class="feat-title">AI-powered generation</div><div class="feat-desc">Claude understands your schema and intent to write accurate, optimised SQL every time.</div></div>
-        <div class="feat-card"><div class="feat-icon fi-blue"><i class="ti ti-table" aria-hidden="true"></i></div><div class="feat-title">Visual schema builder</div><div class="feat-desc">Define tables, columns, types and relationships — no raw SQL needed to get started.</div></div>
-        <div class="feat-card"><div class="feat-icon fi-teal"><i class="ti ti-bulb" aria-hidden="true"></i></div><div class="feat-title">Plain English explanation</div><div class="feat-desc">Every query comes with a line-by-line breakdown so you understand exactly what it does.</div></div>
-        <div class="feat-card"><div class="feat-icon fi-amber"><i class="ti ti-history" aria-hidden="true"></i></div><div class="feat-title">Query history</div><div class="feat-desc">Save, revisit and compare past generations. Export as .sql files with one click.</div></div>
+
+    <div class="stat-row">
+      <div class="stat-pill">
+        <div class="stat-icon si-red"><i class="ti ti-bolt"></i></div>
+        <div class="stat-info"><div class="stat-num">&lt;800ms</div><div class="stat-lbl">Avg generation time</div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-icon si-sand"><i class="ti ti-database"></i></div>
+        <div class="stat-info"><div class="stat-num">4 Dialects</div><div class="stat-lbl">PostgreSQL, MySQL, SQLite, BigQuery</div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-icon si-linen"><i class="ti ti-shield-check"></i></div>
+        <div class="stat-info"><div class="stat-num">100% Free</div><div class="stat-lbl">Groq free tier, no credit card</div></div>
+      </div>
+    </div>
+
+    <section class="features-wrap">
+      <div class="sec-eyebrow">What you get</div>
+      <div class="sec-h2">Everything you need</div>
+      <div class="sec-sub">Built for engineers who want results, not syntax headaches.</div>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <span class="feat-big-icon">🧠</span>
+          <div class="feat-tag">AI Core</div>
+          <div class="feat-title">AI-powered generation</div>
+          <div class="feat-desc">Llama 3.3 70B via Groq understands your full schema and intent — writing accurate, optimised SQL with sub-second latency.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-big-icon">🏗️</span>
+          <div class="feat-tag">Schema Builder</div>
+          <div class="feat-title">Visual schema designer</div>
+          <div class="feat-desc">Define tables, columns, types, primary keys and constraints using a clean visual builder — no raw SQL needed to get started.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-big-icon">💡</span>
+          <div class="feat-tag">Explainability</div>
+          <div class="feat-title">Plain English breakdown</div>
+          <div class="feat-desc">Every generated query comes with a clause-by-clause explanation in plain English — so you actually understand what it does.</div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-big-icon">📚</span>
+          <div class="feat-tag">History</div>
+          <div class="feat-title">Query history & export</div>
+          <div class="feat-desc">Save, star, search and compare every query you've generated. Export as .sql files or reuse directly in the generator.</div>
+        </div>
       </div>
     </section>
-    <section class="cta-section">
+
+    <div class="cta-wrap">
       <div class="cta-box">
         <h2>Ready to stop guessing SQL?</h2>
-        <p>Add your Anthropic API key and generate your first query in seconds.</p>
-        <button class="btn btn-purple" onclick="openKeyModal()"><i class="ti ti-key" aria-hidden="true"></i> Add free Groq key to start</button>
+        <p>Add your free Groq API key and generate your first query in under 30 seconds.</p>
+        <button class="btn btn-primary" onclick="openKeyModal()">🔑 Add free Groq key</button>
       </div>
-    </section>
+    </div>
   </div>
 </div>
 
-<!-- ════ PAGE 2: SCHEMA BUILDER ════ -->
+<!-- ════ PAGE 2: SCHEMA ════ -->
 <div class="page" id="page-schema" style="height:100vh;">
-  <div class="schema-layout" style="flex:1;overflow:hidden;">
-    <div class="schema-sidebar">
-      <div class="sidebar-top">
-        <div class="sidebar-label">Tables</div>
-        <button class="btn-add-table" onclick="addTable()"><i class="ti ti-plus" aria-hidden="true"></i> Add table</button>
+  <div class="schema-wrap" style="flex:1;overflow:hidden;">
+    <div class="s-sidebar">
+      <div class="s-sidebar-top">
+        <div class="s-sidebar-lbl">Tables</div>
+        <button class="btn-add-tbl" onclick="addTable()"><i class="ti ti-plus"></i> Add table</button>
       </div>
-      <div class="table-list" id="tableList"></div>
+      <div class="tbl-list" id="tableList"></div>
     </div>
-    <div class="schema-main" id="schemMain">
-      <div class="schema-empty" id="schemaEmpty">
-        <i class="ti ti-table" style="font-size:38px;color:rgba(255,255,255,0.12);" aria-hidden="true"></i>
-        <div style="font-size:15px;font-weight:500;color:rgba(255,255,255,0.35);">No table selected</div>
-        <div style="font-size:13px;">Add a table from the sidebar</div>
+    <div class="s-main">
+      <div class="s-empty" id="schemaEmpty">
+        <span class="s-empty-icon">🗄️</span>
+        <div style="font-size:16px;font-weight:700;color:rgba(240,220,200,0.28);">No table selected</div>
+        <div style="font-size:13.5px;">Add a table from the sidebar to begin</div>
       </div>
       <div id="schemaEditor" style="display:none;flex-direction:column;height:100%;">
-        <div class="schema-main-header">
-          <div class="schema-title-wrap">
-            <div id="editorDot" style="width:10px;height:10px;border-radius:50%;"></div>
-            <input id="tblNameInput" class="col-input" style="width:180px;font-size:15px;font-weight:600;" placeholder="Table name" oninput="renameTable(this.value)">
-            <span id="colCountLabel" style="font-size:12px;color:rgba(255,255,255,0.28);margin-left:4px;"></span>
+        <div class="s-main-hdr">
+          <div class="s-title-wrap">
+            <div id="editorDot" style="width:12px;height:12px;border-radius:50%;"></div>
+            <input id="tblNameInput" class="c-input" style="width:200px;font-size:16px;font-weight:800;" placeholder="Table name" oninput="renameTable(this.value)">
+            <span id="colCountLbl" style="font-size:12px;color:var(--dim);margin-left:4px;"></span>
           </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="addColumn()"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i> Add column</button>
-            <button class="btn btn-purple btn-sm" onclick="navigate('generator')">Generate SQL →</button>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-outline btn-sm" onclick="addColumn()"><i class="ti ti-plus" style="font-size:13px;"></i> Add column</button>
+            <button class="btn btn-primary btn-sm" onclick="navigate('generator')">Generate SQL →</button>
           </div>
         </div>
-        <div class="col-table-wrap">
-          <table class="col-table">
+        <div class="col-wrap">
+          <table class="col-tbl">
             <thead><tr>
-              <th style="width:28px;"></th>
+              <th style="width:30px;"></th>
               <th>Column name</th>
-              <th style="width:130px;">Type</th>
-              <th style="width:52px;text-align:center;">PK</th>
-              <th style="width:52px;text-align:center;">NN</th>
-              <th style="width:36px;"></th>
+              <th style="width:140px;">Type</th>
+              <th style="width:56px;text-align:center;">PK</th>
+              <th style="width:56px;text-align:center;">NN</th>
+              <th style="width:40px;"></th>
             </tr></thead>
             <tbody id="colBody"></tbody>
           </table>
@@ -476,56 +471,56 @@
 
 <!-- ════ PAGE 3: GENERATOR ════ -->
 <div class="page" id="page-generator" style="height:100vh;">
-  <div class="gen-layout" style="flex:1;overflow:hidden;">
-    <div class="gen-panel gen-panel-left">
-      <div class="panel-hdr">
-        <span class="panel-hdr-title">Input</span>
-        <div class="dialect-pills" id="dialectPills">
-          <button class="dpill dpill-active" onclick="setDialect('PostgreSQL',this)">PostgreSQL</button>
+  <div class="gen-wrap" style="flex:1;overflow:hidden;">
+    <div class="gen-left">
+      <div class="pnl-hdr">
+        <span class="pnl-hdr-lbl">Input</span>
+        <div class="dpills">
+          <button class="dpill dpill-on" onclick="setDialect('PostgreSQL',this)">PostgreSQL</button>
           <button class="dpill" onclick="setDialect('MySQL',this)">MySQL</button>
           <button class="dpill" onclick="setDialect('SQLite',this)">SQLite</button>
           <button class="dpill" onclick="setDialect('BigQuery',this)">BigQuery</button>
         </div>
       </div>
-      <div class="schema-chips-bar" id="schemaChipsBar"></div>
-      <div class="gen-input-area">
+      <div class="chips-bar" id="schemaChipsBar"></div>
+      <div class="gen-input-body">
         <div>
-          <div class="field-label">Describe what you want in plain English</div>
-          <textarea class="nl-textarea" id="genPrompt" placeholder="e.g. Show me the top 10 customers by total order value in the last 30 days..."></textarea>
+          <div class="field-lbl">Describe what you want in plain English</div>
+          <textarea class="nl-area" id="genPrompt" placeholder="e.g. Show me the top 10 customers by total order value in the last 30 days, including their name and email..."></textarea>
         </div>
         <div>
-          <div class="field-label" style="margin-bottom:7px;">Try an example</div>
-          <div class="examples-grid">
+          <div class="field-lbl" style="margin-bottom:9px;">Quick examples</div>
+          <div class="ex-grid">
             <button class="ex-btn" onclick="setEx(this)">Top 10 users by total revenue last 30 days</button>
             <button class="ex-btn" onclick="setEx(this)">Count of orders grouped by status this week</button>
             <button class="ex-btn" onclick="setEx(this)">All pending orders with user name and email</button>
-            <button class="ex-btn" onclick="setEx(this)">Average order value per user, sorted highest first</button>
+            <button class="ex-btn" onclick="setEx(this)">Average order value per user, highest first</button>
           </div>
         </div>
         <button class="gen-btn" id="genBtn" onclick="generate()">
-          <i class="ti ti-sparkles" aria-hidden="true"></i> Generate SQL
+          ✨ Generate SQL
         </button>
       </div>
     </div>
-    <div class="gen-panel">
-      <div class="panel-hdr">
-        <span class="panel-hdr-title">Output</span>
-        <div id="outHeaderActions" style="display:none;gap:6px;display:none;">
-          <button class="copy-btn" id="mainCopyBtn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy</button>
-          <button class="copy-btn" onclick="downloadSQL()"><i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i> Export .sql</button>
+    <div class="gen-right">
+      <div class="pnl-hdr">
+        <span class="pnl-hdr-lbl">Output</span>
+        <div id="outHdrActs" style="display:none;gap:7px;">
+          <button class="cp-btn" id="mainCpBtn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;"></i> Copy</button>
+          <button class="cp-btn" onclick="downloadSQL()"><i class="ti ti-download" style="font-size:13px;"></i> Export .sql</button>
         </div>
       </div>
-      <div class="gen-output" id="genOutput">
-        <div class="output-empty" id="genEmpty">
-          <i class="ti ti-terminal-2" style="font-size:36px;" aria-hidden="true"></i>
-          <div style="font-size:14px;color:rgba(255,255,255,0.3);font-weight:500;">Your SQL will appear here</div>
-          <div style="font-size:12.5px;">Describe your query and hit generate</div>
+      <div class="gen-out" id="genOut">
+        <div class="out-empty" id="genEmpty">
+          <span class="out-empty-icon">🔮</span>
+          <div style="font-size:15px;color:rgba(240,220,200,0.28);font-weight:700;">Your SQL will appear here</div>
+          <div style="font-size:13px;">Describe your query and hit generate</div>
         </div>
       </div>
-      <div class="out-actions" id="outActions" style="display:none;">
-        <button class="out-action-btn" onclick="saveToHistory()"><i class="ti ti-bookmark" style="font-size:14px;" aria-hidden="true"></i> Save</button>
-        <button class="out-action-btn" onclick="generate()"><i class="ti ti-refresh" style="font-size:14px;" aria-hidden="true"></i> Regenerate</button>
-        <button class="out-action-btn" onclick="navigate('history')"><i class="ti ti-history" style="font-size:14px;" aria-hidden="true"></i> History</button>
+      <div class="out-actions" id="outActs" style="display:none;">
+        <button class="out-act-btn" onclick="saveToHistory()"><i class="ti ti-bookmark" style="font-size:14px;"></i> Save</button>
+        <button class="out-act-btn" onclick="generate()"><i class="ti ti-refresh" style="font-size:14px;"></i> Regenerate</button>
+        <button class="out-act-btn" onclick="navigate('history')"><i class="ti ti-history" style="font-size:14px;"></i> History</button>
       </div>
     </div>
   </div>
@@ -533,28 +528,28 @@
 
 <!-- ════ PAGE 4: HISTORY ════ -->
 <div class="page" id="page-history">
-  <div class="scroll-content" style="position:relative;z-index:1;">
-    <div style="max-width:900px;margin:0 auto;padding:32px 32px 60px;">
-      <div class="hist-header">
+  <div class="scroll-view" style="position:relative;z-index:1;">
+    <div class="hist-body">
+      <div class="hist-hdr">
         <div>
-          <div class="hist-title">Query history</div>
-          <div class="hist-sub" id="histSub">0 queries saved</div>
+          <div class="hist-pg-title">Query history</div>
+          <div class="hist-pg-sub" id="histSub">0 queries saved</div>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash" aria-hidden="true" style="font-size:13px;"></i> Clear all</button>
+        <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash" style="font-size:13px;"></i> Clear all</button>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-lbl">Total</div><div class="stat-val" id="hStatTotal" style="color:#a78bfa;">0</div></div>
-        <div class="stat-card"><div class="stat-lbl">Starred</div><div class="stat-val" id="hStatStarred" style="color:#fbbf24;">0</div></div>
-        <div class="stat-card"><div class="stat-lbl">Dialects</div><div class="stat-val" id="hStatDialects" style="color:#60a5fa;">0</div></div>
-        <div class="stat-card"><div class="stat-lbl">Tables</div><div class="stat-val" id="hStatTables" style="color:#34d399;">0</div></div>
+      <div class="stats-row">
+        <div class="stat-c"><div class="sc-lbl">Total</div><div class="sc-val" id="hST" style="color:var(--crimson);">0</div></div>
+        <div class="stat-c"><div class="sc-lbl">Starred</div><div class="sc-val" id="hSS" style="color:#ffd700;">0</div></div>
+        <div class="stat-c"><div class="sc-lbl">Dialects</div><div class="sc-val" id="hSD" style="color:var(--sand);">0</div></div>
+        <div class="stat-c"><div class="sc-lbl">Tables</div><div class="sc-val" id="hSTb" style="color:#4ade80;">0</div></div>
       </div>
       <div class="hist-toolbar">
-        <div class="search-wrap">
-          <i class="ti ti-search search-ico" aria-hidden="true"></i>
-          <input class="search-box" id="histSearch" placeholder="Search queries..." oninput="renderHistory()">
+        <div class="srch-wrap">
+          <i class="ti ti-search srch-ico"></i>
+          <input class="srch-box" id="histSearch" placeholder="Search queries..." oninput="renderHistory()">
         </div>
-        <button class="filter-pill fp-active" id="fpAll" onclick="setHFilter('all',this)">All</button>
-        <button class="filter-pill" id="fpStarred" onclick="setHFilter('starred',this)">Starred</button>
+        <button class="f-pill f-on" id="fpAll" onclick="setHF('all',this)">All</button>
+        <button class="f-pill" id="fpStarred" onclick="setHF('starred',this)">⭐ Starred</button>
         <select class="sort-sel" id="histSort" onchange="renderHistory()">
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
@@ -566,477 +561,316 @@
   </div>
 </div>
 
-<!-- ── API Key Modal ── -->
+<!-- ── Modal ── -->
 <div class="modal-bg" id="keyModal">
   <div class="modal">
     <div class="modal-title">Add your Groq API key</div>
-    <div class="modal-sub">Your key is stored only in your browser's memory and never sent anywhere except the Google Groq API. It's free — no credit card needed.</div>
+    <div class="modal-sub">Your key stays in your browser's memory only — never stored, never shared. Completely free, no credit card needed.</div>
     <input class="modal-input" id="keyInput" type="password" placeholder="gsk_...">
-    <div class="modal-note">
-      Don't have a key? Get one free at <a href="https://console.groq.com" target="_blank">console.groq.com</a> — sign up free, click API Keys → Create API Key. Takes 30 seconds.
-    </div>
+    <div class="modal-note">Get a free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key. Takes 30 seconds.</div>
     <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeKeyModal()">Cancel</button>
-      <button class="btn btn-purple btn-sm" onclick="saveKey()">Save key</button>
+      <button class="btn btn-outline btn-sm" onclick="closeKeyModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveKey()">Save key</button>
     </div>
   </div>
 </div>
-
-<!-- ── Toast ── -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════
-//  GLOBAL STATE
-// ══════════════════════════
-let apiKey = '';
-let currentDialect = 'PostgreSQL';
-let currentSQL = '';
-let activeTableId = null;
-let nextTableId = 1;
-let nextColId = 100;
-let histFilter = 'all';
-let expandedHistId = null;
-
-const COLORS = ['#a78bfa','#60a5fa','#34d399','#fb923c','#f472b6','#facc15','#22d3ee'];
-const TYPES  = ['INT','BIGINT','VARCHAR','TEXT','BOOLEAN','DECIMAL','FLOAT','DATE','TIMESTAMP','UUID','JSON'];
-
-// Shared tables & history across pages
-let tables = [
-  { id:1, name:'users', color:'#a78bfa', cols:[
-    {id:1,name:'id',type:'INT',pk:true,nn:true},
-    {id:2,name:'name',type:'VARCHAR',pk:false,nn:true},
-    {id:3,name:'email',type:'VARCHAR',pk:false,nn:true},
-    {id:4,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}
-  ]},
-  { id:2, name:'orders', color:'#60a5fa', cols:[
-    {id:1,name:'id',type:'INT',pk:true,nn:true},
-    {id:2,name:'user_id',type:'INT',pk:false,nn:true},
-    {id:3,name:'amount',type:'DECIMAL',pk:false,nn:true},
-    {id:4,name:'status',type:'VARCHAR',pk:false,nn:false},
-    {id:5,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}
-  ]}
-];
-nextTableId = 3;
-activeTableId = 1;
-
-let queryHistory = [];
-
-// ══════════════════════════
-//  ROUTER
-// ══════════════════════════
-function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  document.getElementById('nl-' + page).classList.add('active');
-  window.scrollTo(0,0);
-  if (page === 'schema')    renderSchema();
-  if (page === 'generator') renderGenSchema();
-  if (page === 'history')   renderHistory();
-}
-
-// ══════════════════════════
-//  API KEY
-// ══════════════════════════
-function openKeyModal() {
-  document.getElementById('keyInput').value = apiKey;
-  document.getElementById('keyModal').classList.add('open');
-}
-function closeKeyModal() {
-  document.getElementById('keyModal').classList.remove('open');
-}
-function saveKey() {
-  apiKey = document.getElementById('keyInput').value.trim();
-  closeKeyModal();
-  const btn = document.getElementById('apiKeyBtn');
-  const lbl = document.getElementById('keyBtnLabel');
-  if (apiKey) {
-    btn.classList.add('key-set');
-    lbl.textContent = 'Groq key saved ✓';
-  } else {
-    btn.classList.remove('key-set');
-    lbl.textContent = 'Add Groq key';
+// ── Particles ──
+(function(){
+  const c=document.getElementById('ptx'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  const COLS=['rgba(160,0,28,','rgba(107,15,26,','rgba(201,168,124,','rgba(61,0,0,','rgba(232,213,183,'];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  window.addEventListener('resize',resize);resize();
+  for(let i=0;i<55;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+0.4,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,col:COLS[Math.floor(Math.random()*COLS.length)],o:Math.random()*.35+.08,p:Math.random()*Math.PI*2,ps:Math.random()*.018+.008});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.p+=p.ps;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      const op=p.o*(.55+.45*Math.sin(p.p));
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.col+op+')';ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(160,0,28,'+(0.07*(1-d/130))+')';ctx.lineWidth=.6;ctx.stroke();}
+    }
+    requestAnimationFrame(draw);
   }
-  showToast(apiKey ? 'Groq API key saved!' : 'API key cleared');
-}
-document.getElementById('keyModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('keyModal')) closeKeyModal();
-});
+  draw();
+})();
 
-// ══════════════════════════
-//  TOAST
-// ══════════════════════════
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+// ── State ──
+let apiKey='',currentDialect='PostgreSQL',currentSQL='';
+let activeTableId=null,nextTableId=1,nextColId=100;
+let histFilter='all',expandedHistId=null;
+const COLORS=['#A0001C','#C9A87C','#6B0F1A','#E8D5B7','#7A6652','#8B0000','#D4A76A'];
+const TYPES=['INT','BIGINT','VARCHAR','TEXT','BOOLEAN','DECIMAL','FLOAT','DATE','TIMESTAMP','UUID','JSON'];
+let tables=[
+  {id:1,name:'users',color:'#A0001C',cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},{id:2,name:'name',type:'VARCHAR',pk:false,nn:true},
+    {id:3,name:'email',type:'VARCHAR',pk:false,nn:true},{id:4,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}]},
+  {id:2,name:'orders',color:'#C9A87C',cols:[
+    {id:1,name:'id',type:'INT',pk:true,nn:true},{id:2,name:'user_id',type:'INT',pk:false,nn:true},
+    {id:3,name:'amount',type:'DECIMAL',pk:false,nn:true},{id:4,name:'status',type:'VARCHAR',pk:false,nn:false},
+    {id:5,name:'created_at',type:'TIMESTAMP',pk:false,nn:false}]}
+];
+nextTableId=3;activeTableId=1;
+let queryHistory=[];
+
+// ── Router ──
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nl-'+page).classList.add('active');
+  window.scrollTo(0,0);
+  if(page==='schema')renderSchema();
+  if(page==='generator')renderGenSchema();
+  if(page==='history')renderHistory();
 }
 
-// ══════════════════════════
-//  SCHEMA BUILDER
-// ══════════════════════════
-function renderSchema() {
-  renderTableList();
-  renderEditor();
+// ── Key ──
+function openKeyModal(){document.getElementById('keyInput').value=apiKey;document.getElementById('keyModal').classList.add('open');}
+function closeKeyModal(){document.getElementById('keyModal').classList.remove('open');}
+function saveKey(){
+  apiKey=document.getElementById('keyInput').value.trim();closeKeyModal();
+  const btn=document.getElementById('apiKeyBtn'),lbl=document.getElementById('keyBtnLabel');
+  if(apiKey){btn.classList.add('key-set');lbl.textContent='Groq key saved ✓';}
+  else{btn.classList.remove('key-set');lbl.textContent='Add Groq key';}
+  showToast(apiKey?'🔥 Groq key saved!':'Key cleared');
 }
+document.getElementById('keyModal').addEventListener('click',e=>{if(e.target===document.getElementById('keyModal'))closeKeyModal();});
 
-function renderTableList() {
-  document.getElementById('tableList').innerHTML = tables.map(t => `
-    <div class="table-item ${t.id===activeTableId?'tbl-active':''}" onclick="selectTable(${t.id})">
+// ── Toast ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── Schema ──
+function renderSchema(){renderTableList();renderEditor();}
+function renderTableList(){
+  document.getElementById('tableList').innerHTML=tables.map(t=>`
+    <div class="tbl-item ${t.id===activeTableId?'tbl-active':''}" onclick="selectTable(${t.id})">
       <div class="tbl-left">
-        <div class="tbl-dot" style="background:${t.color}"></div>
-        <div>
-          <div class="tbl-name">${t.name||'unnamed'}</div>
-          <div class="tbl-count">${t.cols.length} col${t.cols.length!==1?'s':''}</div>
-        </div>
+        <div class="tbl-dot" style="background:${t.color};box-shadow:0 0 8px ${t.color};"></div>
+        <div><div class="tbl-name-txt">${t.name||'unnamed'}</div><div class="tbl-col-cnt">${t.cols.length} col${t.cols.length!==1?'s':''}</div></div>
       </div>
-      <button class="tbl-del" onclick="event.stopPropagation();deleteTable(${t.id})" aria-label="Delete table">
-        <i class="ti ti-trash" style="font-size:12px;"></i>
-      </button>
-    </div>
-  `).join('');
+      <button class="tbl-del-btn" onclick="event.stopPropagation();deleteTable(${t.id})"><i class="ti ti-trash" style="font-size:12px;"></i></button>
+    </div>`).join('');
 }
-
-function renderEditor() {
-  const t = tables.find(x=>x.id===activeTableId);
-  document.getElementById('schemaEmpty').style.display  = t ? 'none' : 'flex';
-  const ed = document.getElementById('schemaEditor');
-  if (!t) { ed.style.display = 'none'; return; }
-  ed.style.display = 'flex';
-  document.getElementById('editorDot').style.background = t.color;
-  document.getElementById('tblNameInput').value = t.name;
-  document.getElementById('colCountLabel').textContent = `${t.cols.length} columns`;
-
-  document.getElementById('colBody').innerHTML = t.cols.map((c,i) => `
+function renderEditor(){
+  const t=tables.find(x=>x.id===activeTableId);
+  document.getElementById('schemaEmpty').style.display=t?'none':'flex';
+  const ed=document.getElementById('schemaEditor');
+  if(!t){ed.style.display='none';return;}
+  ed.style.display='flex';
+  document.getElementById('editorDot').style.cssText=`width:12px;height:12px;border-radius:50%;background:${t.color};box-shadow:0 0 9px ${t.color};`;
+  document.getElementById('tblNameInput').value=t.name;
+  document.getElementById('colCountLbl').textContent=`${t.cols.length} columns`;
+  document.getElementById('colBody').innerHTML=t.cols.map((c,i)=>`
     <tr class="col-row">
-      <td style="text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">${i+1}</td>
-      <td><input class="col-input" value="${c.name}" onchange="updateCol(${c.id},'name',this.value)" placeholder="column_name"></td>
-      <td><select class="col-select" onchange="updateCol(${c.id},'type',this.value)">${TYPES.map(tp=>`<option value="${tp}"${c.type===tp?' selected':''}>${tp}</option>`).join('')}</select></td>
-      <td style="text-align:center;"><button class="toggle toggle-pk ${c.pk?'on':''}" onclick="toggleCol(${c.id},'pk')" aria-label="Toggle PK"></button></td>
-      <td style="text-align:center;"><button class="toggle toggle-nn ${c.nn?'on':''}" onclick="toggleCol(${c.id},'nn')" aria-label="Toggle NN"></button></td>
-      <td><button class="del-col" onclick="deleteCol(${c.id})" aria-label="Delete column"><i class="ti ti-x" style="font-size:13px;"></i></button></td>
-    </tr>
-  `).join('') + `
-    <tr><td></td><td colspan="5" style="padding:8px 5px;">
-      <button class="btn-add-col" onclick="addColumn()"><i class="ti ti-plus" style="font-size:13px;" aria-hidden="true"></i> Add column</button>
+      <td style="text-align:center;font-size:12px;color:var(--dim);">${i+1}</td>
+      <td><input class="c-input" value="${c.name}" onchange="updateCol(${c.id},'name',this.value)" placeholder="column_name"></td>
+      <td><select class="c-select" onchange="updateCol(${c.id},'type',this.value)">${TYPES.map(tp=>`<option value="${tp}"${c.type===tp?' selected':''}>${tp}</option>`).join('')}</select></td>
+      <td style="text-align:center;"><button class="tog tog-pk ${c.pk?'on':''}" onclick="toggleCol(${c.id},'pk')"></button></td>
+      <td style="text-align:center;"><button class="tog tog-nn ${c.nn?'on':''}" onclick="toggleCol(${c.id},'nn')"></button></td>
+      <td><button class="del-col-btn" onclick="deleteCol(${c.id})"><i class="ti ti-x" style="font-size:13px;"></i></button></td>
+    </tr>`).join('')+`
+    <tr><td></td><td colspan="5" style="padding:9px 5px;">
+      <button class="btn-add-col" onclick="addColumn()"><i class="ti ti-plus" style="font-size:13px;"></i> Add column</button>
     </td></tr>`;
 }
-
-function selectTable(id)  { activeTableId = id; renderSchema(); }
-function renameTable(val) { const t=tables.find(x=>x.id===activeTableId); if(t){t.name=val;} renderTableList(); }
-
-function addTable() {
-  const color = COLORS[nextTableId % COLORS.length];
-  const t = { id: nextTableId++, name: `table_${tables.length+1}`, color, cols: [{id:nextColId++,name:'id',type:'INT',pk:true,nn:true}] };
-  tables.push(t); activeTableId = t.id; renderSchema();
-  setTimeout(() => document.getElementById('tblNameInput').focus(), 50);
+function selectTable(id){activeTableId=id;renderSchema();}
+function renameTable(val){const t=tables.find(x=>x.id===activeTableId);if(t)t.name=val;renderTableList();}
+function addTable(){
+  const color=COLORS[nextTableId%COLORS.length];
+  const t={id:nextTableId++,name:`table_${tables.length+1}`,color,cols:[{id:nextColId++,name:'id',type:'INT',pk:true,nn:true}]};
+  tables.push(t);activeTableId=t.id;renderSchema();
+  setTimeout(()=>document.getElementById('tblNameInput').focus(),50);
+}
+function deleteTable(id){
+  if(tables.length===1){showToast('Keep at least one table');return;}
+  tables=tables.filter(t=>t.id!==id);if(activeTableId===id)activeTableId=tables[0].id;renderSchema();
+}
+function addColumn(){
+  const t=tables.find(x=>x.id===activeTableId);if(!t)return;
+  t.cols.push({id:nextColId++,name:'',type:'VARCHAR',pk:false,nn:false});renderEditor();
+  const ins=document.querySelectorAll('#colBody .c-input');if(ins.length)ins[ins.length-1].focus();
+}
+function updateCol(cid,field,val){
+  const t=tables.find(x=>x.id===activeTableId),c=t&&t.cols.find(x=>x.id===cid);
+  if(c){c[field]=val;document.getElementById('colCountLbl').textContent=`${t.cols.length} columns`;renderTableList();}
+}
+function toggleCol(cid,field){
+  const t=tables.find(x=>x.id===activeTableId),c=t&&t.cols.find(x=>x.id===cid);
+  if(c){c[field]=!c[field];renderEditor();}
+}
+function deleteCol(cid){
+  const t=tables.find(x=>x.id===activeTableId);
+  if(!t||t.cols.length<=1){showToast('Keep at least one column');return;}
+  t.cols=t.cols.filter(x=>x.id!==cid);renderEditor();renderTableList();
 }
 
-function deleteTable(id) {
-  if (tables.length === 1) { showToast('Keep at least one table'); return; }
-  tables = tables.filter(t=>t.id!==id);
-  if (activeTableId === id) activeTableId = tables[0].id;
-  renderSchema();
+// ── Generator ──
+function renderGenSchema(){
+  document.getElementById('schemaChipsBar').innerHTML=tables.map(t=>`
+    <div class="s-chip"><div class="chip-dot" style="background:${t.color};box-shadow:0 0 5px ${t.color};"></div>${t.name} · ${t.cols.length} cols</div>`).join('')+
+    `<div class="s-chip" style="cursor:pointer;border-style:dashed;" onclick="navigate('schema')"><i class="ti ti-edit" style="font-size:11px;"></i> Edit schema</div>`;
 }
+function setDialect(d,btn){currentDialect=d;document.querySelectorAll('.dpill').forEach(b=>b.classList.remove('dpill-on'));btn.classList.add('dpill-on');}
+function setEx(btn){document.getElementById('genPrompt').value=btn.textContent;}
+function buildSchema(){return tables.map(t=>`${t.name}(${t.cols.map(c=>c.name+':'+c.type+(c.pk?' PK':'')+(c.nn?' NOT NULL':'')).join(', ')})`).join('\n');}
 
-function addColumn() {
-  const t = tables.find(x=>x.id===activeTableId); if(!t) return;
-  t.cols.push({id:nextColId++,name:'',type:'VARCHAR',pk:false,nn:false});
-  renderEditor();
-  const inputs = document.querySelectorAll('#colBody .col-input');
-  if (inputs.length) inputs[inputs.length-1].focus();
-}
-
-function updateCol(cid, field, val) {
-  const t = tables.find(x=>x.id===activeTableId);
-  const c = t && t.cols.find(x=>x.id===cid);
-  if (c) { c[field]=val; document.getElementById('colCountLabel').textContent=`${t.cols.length} columns`; renderTableList(); }
-}
-
-function toggleCol(cid, field) {
-  const t = tables.find(x=>x.id===activeTableId);
-  const c = t && t.cols.find(x=>x.id===cid);
-  if (c) { c[field]=!c[field]; renderEditor(); }
-}
-
-function deleteCol(cid) {
-  const t = tables.find(x=>x.id===activeTableId);
-  if (!t || t.cols.length<=1) { showToast('Keep at least one column'); return; }
-  t.cols = t.cols.filter(x=>x.id!==cid);
-  renderEditor(); renderTableList();
-}
-
-// ══════════════════════════
-//  GENERATOR
-// ══════════════════════════
-function renderGenSchema() {
-  const bar = document.getElementById('schemaChipsBar');
-  bar.innerHTML = tables.map(t => `
-    <div class="schema-chip">
-      <div class="chip-dot" style="background:${t.color}"></div>
-      ${t.name} · ${t.cols.length} cols
-    </div>
-  `).join('') + `<div class="schema-chip" style="cursor:pointer;border-style:dashed;" onclick="navigate('schema')">
-    <i class="ti ti-edit" style="font-size:11px;" aria-hidden="true"></i> Edit schema
-  </div>`;
-}
-
-function setDialect(d, btn) {
-  currentDialect = d;
-  document.querySelectorAll('.dpill').forEach(b=>b.classList.remove('dpill-active'));
-  btn.classList.add('dpill-active');
-}
-
-function setEx(btn) { document.getElementById('genPrompt').value = btn.textContent; }
-
-function buildSchemaString() {
-  return tables.map(t =>
-    `${t.name}(${t.cols.map(c=>c.name+':'+c.type+(c.pk?' PK':'')+(c.nn?' NOT NULL':'')).join(', ')})`
-  ).join('\n');
-}
-
-async function generate() {
-  const prompt = document.getElementById('genPrompt').value.trim();
-  if (!prompt) { document.getElementById('genPrompt').focus(); return; }
-  if (!apiKey)  { openKeyModal(); return; }
-
-  const btn = document.getElementById('genBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> Generating...';
-
-  document.getElementById('genEmpty').style.display = 'none';
-  document.getElementById('outHeaderActions').style.display = 'none';
-  document.getElementById('outActions').style.display = 'none';
-
-  const out = document.getElementById('genOutput');
-  out.innerHTML = '<div class="ldots"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';
-
-  try {
-    const groqPrompt = `You are a SQL expert. Given the database schema and a plain English request, generate perfect SQL.
-
-Schema:
-${buildSchemaString()}
-
-Dialect: ${currentDialect}
-Request: ${prompt}
-
-Respond ONLY with valid JSON — no markdown, no preamble, no code fences:
-{
-  "sql": "the full SQL query",
-  "clauses": [
-    {"clause":"SELECT","explanation":"what this selects"},
-    {"clause":"FROM","explanation":"the source table"},
-    {"clause":"JOIN","explanation":"how tables are joined"},
-    {"clause":"WHERE","explanation":"the filter condition"},
-    {"clause":"GROUP BY","explanation":"grouping logic"},
-    {"clause":"ORDER BY","explanation":"sort order"},
-    {"clause":"LIMIT","explanation":"row limit"}
-  ],
-  "warning": "short warning if ambiguous or could be slow, else empty string"
-}`;
-
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.1,
-        max_tokens: 1000,
-        messages: [
-          { role: 'system', content: 'You are a SQL expert. Always respond with valid JSON only — no markdown, no code fences, no preamble.' },
-          { role: 'user', content: groqPrompt }
-        ]
-      })
+async function generate(){
+  const prompt=document.getElementById('genPrompt').value.trim();
+  if(!prompt){document.getElementById('genPrompt').focus();return;}
+  if(!apiKey){openKeyModal();return;}
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.textContent='⏳ Generating...';
+  document.getElementById('genEmpty').style.display='none';
+  document.getElementById('outHdrActs').style.display='none';
+  document.getElementById('outActs').style.display='none';
+  const out=document.getElementById('genOut');
+  out.innerHTML='<div class="ldots"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>';
+  try{
+    const p=`You are a SQL expert. Given the database schema and a plain English request, generate perfect SQL.\n\nSchema:\n${buildSchema()}\n\nDialect: ${currentDialect}\nRequest: ${prompt}\n\nRespond ONLY with valid JSON — no markdown, no preamble, no code fences:\n{"sql":"the full SQL query","clauses":[{"clause":"SELECT","explanation":"what this selects"},{"clause":"FROM","explanation":"the source table"},{"clause":"JOIN","explanation":"how tables are joined"},{"clause":"WHERE","explanation":"the filter condition"},{"clause":"GROUP BY","explanation":"grouping logic"},{"clause":"ORDER BY","explanation":"sort order"},{"clause":"LIMIT","explanation":"row limit"}],"warning":"short warning if ambiguous or slow, else empty string"}`;
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',temperature:0.1,max_tokens:1000,
+        messages:[{role:'system',content:'You are a SQL expert. Always respond with valid JSON only — no markdown, no code fences, no preamble.'},{role:'user',content:p}]})
     });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.choices[0].message.content;
-    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
-    currentSQL = parsed.sql;
-    renderSQLOutput(parsed);
-
-  } catch(e) {
-    out.innerHTML = `<div style="padding:20px;font-size:13px;color:rgba(226,75,74,0.8);background:rgba(226,75,74,0.06);border:0.5px solid rgba(226,75,74,0.2);border-radius:10px;">
-      <i class="ti ti-alert-circle" style="font-size:15px;margin-right:6px;" aria-hidden="true"></i>
-      ${e.message || 'Failed to generate SQL. Check your API key and try again.'}
-    </div>`;
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const parsed=JSON.parse(data.choices[0].message.content.replace(/```json|```/g,'').trim());
+    currentSQL=parsed.sql;renderSQLOut(parsed);
+  }catch(e){
+    out.innerHTML=`<div style="padding:22px;font-size:13px;color:rgba(220,80,80,0.9);background:rgba(220,50,50,0.07);border:1px solid rgba(220,50,50,0.25);border-radius:12px;"><i class="ti ti-alert-circle" style="font-size:15px;margin-right:8px;"></i>${e.message||'Failed. Check your API key and try again.'}</div>`;
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-sparkles" aria-hidden="true"></i> Generate SQL';
+  btn.disabled=false;btn.innerHTML='✨ Generate SQL';
 }
 
-function hl(sql) {
-  const KWS = ['SELECT','FROM','WHERE','LEFT JOIN','RIGHT JOIN','INNER JOIN','JOIN','ON','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','AS','AND','OR','NOT','IN','EXISTS','BETWEEN','LIKE','IS NULL','IS NOT NULL','DISTINCT','COUNT','SUM','AVG','MAX','MIN','ROUND','NOW','INTERVAL','DESC','ASC','BY','CURRENT_DATE','DATE_TRUNC','FORMAT_DATE','EXTRACT'];
-  let h = sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  KWS.forEach(k => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span class="kw">${k}</span>`); });
-  h = h.replace(/'([^']*)'/g,`<span class="str">'$1'</span>`);
-  h = h.replace(/\b(\d+)\b/g,`<span class="num">$1</span>`);
-  h = h.replace(/--.*$/gm, m=>`<span class="cm">${m}</span>`);
+function hl(sql){
+  const K=['SELECT','FROM','WHERE','LEFT JOIN','RIGHT JOIN','INNER JOIN','JOIN','ON','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','AS','AND','OR','NOT','IN','EXISTS','BETWEEN','LIKE','IS NULL','IS NOT NULL','DISTINCT','COUNT','SUM','AVG','MAX','MIN','ROUND','NOW','INTERVAL','DESC','ASC','BY','CURRENT_DATE','DATE_TRUNC','FORMAT_DATE','EXTRACT'];
+  let h=sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  K.forEach(k=>{h=h.replace(new RegExp(`\\b${k}\\b`,'g'),`<span class="kw">${k}</span>`);});
+  h=h.replace(/'([^']*)'/g,`<span class="str">'$1'</span>`);
+  h=h.replace(/\b(\d+)\b/g,`<span class="num">$1</span>`);
+  h=h.replace(/--.*$/gm,m=>`<span class="cm">${m}</span>`);
   return h;
 }
 
-function renderSQLOutput(data) {
-  const out = document.getElementById('genOutput');
-  const sqlUpper = data.sql.toUpperCase();
-  const clauses = data.clauses.filter(c => sqlUpper.includes(c.clause.split(' ')[0]));
-  out.innerHTML = `
+function renderSQLOut(data){
+  const out=document.getElementById('genOut');
+  const up=data.sql.toUpperCase();
+  const cl=data.clauses.filter(c=>up.includes(c.clause.split(' ')[0]));
+  out.innerHTML=`
     <div class="code-card">
-      <div class="code-card-hdr">
-        <div class="code-card-hdr-left"><i class="ti ti-code" style="font-size:13px;" aria-hidden="true"></i> Generated SQL <span class="dtag">${currentDialect}</span></div>
-        <button class="copy-btn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy</button>
+      <div class="code-card-top">
+        <div class="cc-left"><i class="ti ti-code" style="font-size:13px;"></i> Generated SQL <span class="d-tag">${currentDialect}</span></div>
+        <button class="cp-btn" onclick="copySQL()"><i class="ti ti-copy" style="font-size:13px;"></i> Copy</button>
       </div>
-      <div class="sql-block">${hl(data.sql)}</div>
+      <div class="sql-blk">${hl(data.sql)}</div>
     </div>
-    ${data.warning ? `<div class="warn-card"><i class="ti ti-alert-triangle" style="font-size:15px;flex-shrink:0;" aria-hidden="true"></i><span>${data.warning}</span></div>` : ''}
-    <div class="explain-card">
-      <div class="explain-hdr"><i class="ti ti-bulb" style="font-size:13px;" aria-hidden="true"></i> Plain English breakdown</div>
-      <div class="explain-body">
-        ${clauses.map(c=>`
-          <div class="explain-row">
-            <span class="explain-clause">${c.clause}</span>
-            <span class="explain-text">${c.explanation}</span>
-          </div>`).join('')}
-      </div>
-    </div>
-  `;
-  document.getElementById('outHeaderActions').style.display = 'flex';
-  document.getElementById('outActions').style.display = 'flex';
+    ${data.warning?`<div class="warn-box"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0;"></i><span>${data.warning}</span></div>`:''}
+    <div class="exp-card">
+      <div class="exp-hdr"><i class="ti ti-bulb" style="font-size:13px;"></i> Plain English breakdown</div>
+      <div class="exp-body">${cl.map(c=>`<div class="exp-row"><span class="exp-clause">${c.clause}</span><span class="exp-txt">${c.explanation}</span></div>`).join('')}</div>
+    </div>`;
+  document.getElementById('outHdrActs').style.display='flex';
+  document.getElementById('outActs').style.display='flex';
 }
 
-function copySQL() {
-  if (!currentSQL) return;
-  navigator.clipboard.writeText(currentSQL).then(() => {
-    const btn = document.getElementById('mainCopyBtn');
-    if (!btn) return;
-    btn.classList.add('copied');
-    btn.innerHTML = '<i class="ti ti-check" style="font-size:13px;" aria-hidden="true"></i> Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i> Copy'; }, 2000);
+function copySQL(){
+  if(!currentSQL)return;
+  navigator.clipboard.writeText(currentSQL).then(()=>{
+    const b=document.getElementById('mainCpBtn');if(!b)return;
+    b.classList.add('copied');b.innerHTML='<i class="ti ti-check" style="font-size:13px;"></i> Copied!';
+    setTimeout(()=>{b.classList.remove('copied');b.innerHTML='<i class="ti ti-copy" style="font-size:13px;"></i> Copy';},2000);
   });
 }
-
-function downloadSQL() {
-  if (!currentSQL) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([currentSQL],{type:'text/plain'}));
-  a.download = 'query.sql'; a.click();
+function downloadSQL(){
+  if(!currentSQL)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([currentSQL],{type:'text/plain'}));a.download='query.sql';a.click();
+}
+function saveToHistory(){
+  const prompt=document.getElementById('genPrompt').value.trim();
+  queryHistory.unshift({id:Date.now(),prompt,sql:currentSQL,dialect:currentDialect,tables:tables.map(t=>t.name),time:new Date().toLocaleTimeString(),starred:false});
+  showToast('📌 Saved to history!');
 }
 
-function saveToHistory() {
-  const prompt = document.getElementById('genPrompt').value.trim();
-  queryHistory.unshift({
-    id: Date.now(), prompt, sql: currentSQL, dialect: currentDialect,
-    tables: tables.map(t=>t.name), time: new Date().toLocaleTimeString(), starred: false
-  });
-  showToast('Saved to history!');
-}
+// ── History ──
+const DI={PostgreSQL:'hi-pg',MySQL:'hi-my',SQLite:'hi-sq',BigQuery:'hi-bq'};
+const DP={PostgreSQL:'hp-pg',MySQL:'hp-my',SQLite:'hp-sq',BigQuery:'hp-bq'};
+const DE={PostgreSQL:'🐘',MySQL:'🐬',SQLite:'🪶',BigQuery:'☁️'};
 
-// ══════════════════════════
-//  HISTORY
-// ══════════════════════════
-const DIALECT_ICON  = {PostgreSQL:'hci-pg',MySQL:'hci-my',SQLite:'hci-sq',BigQuery:'hci-bq'};
-const DIALECT_PILL  = {PostgreSQL:'hcp-pg',MySQL:'hcp-my',SQLite:'hcp-sq',BigQuery:'hcp-bq'};
-
-function setHFilter(f, btn) {
-  histFilter = f;
-  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('fp-active'));
-  btn.classList.add('fp-active');
-  renderHistory();
-}
-
-function renderHistory() {
-  const q     = document.getElementById('histSearch').value.toLowerCase();
-  const sort  = document.getElementById('histSort').value;
-  let list    = queryHistory.filter(e => {
-    if (histFilter==='starred' && !e.starred) return false;
-    if (q && !e.prompt.toLowerCase().includes(q) && !e.sql.toLowerCase().includes(q)) return false;
+function setHF(f,btn){histFilter=f;document.querySelectorAll('.f-pill').forEach(b=>b.classList.remove('f-on'));btn.classList.add('f-on');renderHistory();}
+function renderHistory(){
+  const q=document.getElementById('histSearch').value.toLowerCase();
+  const sort=document.getElementById('histSort').value;
+  let list=queryHistory.filter(e=>{
+    if(histFilter==='starred'&&!e.starred)return false;
+    if(q&&!e.prompt.toLowerCase().includes(q)&&!e.sql.toLowerCase().includes(q))return false;
     return true;
   });
-  if (sort==='oldest')  list = [...list].reverse();
-  if (sort==='dialect') list = [...list].sort((a,b)=>a.dialect.localeCompare(b.dialect));
-
-  document.getElementById('histSub').textContent = `${list.length} quer${list.length!==1?'ies':'y'} saved`;
-  document.getElementById('hStatTotal').textContent   = list.length;
-  document.getElementById('hStatStarred').textContent = list.filter(e=>e.starred).length;
-  document.getElementById('hStatDialects').textContent= new Set(list.map(e=>e.dialect)).size;
-  document.getElementById('hStatTables').textContent  = new Set(list.flatMap(e=>e.tables)).size;
-
-  const container = document.getElementById('histList');
-  if (!list.length) {
-    container.innerHTML = `<div class="hist-empty"><i class="ti ti-history" style="font-size:38px;display:block;margin-bottom:10px;" aria-hidden="true"></i><div style="font-size:15px;color:rgba(255,255,255,0.35);font-weight:500;">No queries yet</div><div style="font-size:13px;margin-top:4px;">Generate some SQL and save it!</div></div>`;
-    return;
-  }
-  container.innerHTML = list.map(e => `
-    <div class="hist-card ${expandedHistId===e.id?'hc-open':''}" onclick="toggleHist(${e.id})">
-      <div class="hc-top">
-        <div class="hc-icon ${DIALECT_ICON[e.dialect]||'hci-pg'}"><i class="ti ti-database" aria-hidden="true"></i></div>
-        <div class="hc-main">
-          <div class="hc-prompt">${e.prompt}</div>
-          <div class="hc-meta">
-            <span class="hc-pill ${DIALECT_PILL[e.dialect]||'hcp-pg'}">${e.dialect}</span>
-            <span class="hc-time"><i class="ti ti-clock" style="font-size:11px;margin-right:2px;" aria-hidden="true"></i>${e.time}</span>
-            <span class="hc-time"><i class="ti ti-table" style="font-size:11px;margin-right:2px;" aria-hidden="true"></i>${e.tables.join(', ')}</span>
+  if(sort==='oldest')list=[...list].reverse();
+  if(sort==='dialect')list=[...list].sort((a,b)=>a.dialect.localeCompare(b.dialect));
+  document.getElementById('histSub').textContent=`${list.length} quer${list.length!==1?'ies':'y'} saved`;
+  document.getElementById('hST').textContent=list.length;
+  document.getElementById('hSS').textContent=list.filter(e=>e.starred).length;
+  document.getElementById('hSD').textContent=new Set(list.map(e=>e.dialect)).size;
+  document.getElementById('hSTb').textContent=new Set(list.flatMap(e=>e.tables)).size;
+  const con=document.getElementById('histList');
+  if(!list.length){con.innerHTML=`<div class="hist-empty"><span class="hist-empty-ico">🗂️</span><div style="font-size:16px;color:rgba(240,220,200,0.28);font-weight:700;">No queries yet</div><div style="font-size:13.5px;margin-top:5px;">Generate some SQL and save it!</div></div>`;return;}
+  con.innerHTML=list.map(e=>`
+    <div class="h-card ${expandedHistId===e.id?'h-open':''}" onclick="toggleHist(${e.id})">
+      <div class="h-top">
+        <div class="h-ico ${DI[e.dialect]||'hi-pg'}">${DE[e.dialect]||'🐘'}</div>
+        <div class="h-main">
+          <div class="h-prompt">${e.prompt}</div>
+          <div class="h-meta">
+            <span class="h-pill ${DP[e.dialect]||'hp-pg'}">${e.dialect}</span>
+            <span class="h-time"><i class="ti ti-clock" style="font-size:11px;margin-right:2px;"></i>${e.time}</span>
+            <span class="h-time"><i class="ti ti-table" style="font-size:11px;margin-right:2px;"></i>${e.tables.join(', ')}</span>
           </div>
         </div>
-        <div class="hc-actions" onclick="event.stopPropagation()">
-          <button class="icon-btn ${e.starred?'ibstar':''}" onclick="toggleStar(${e.id})" aria-label="Star"><i class="ti ti-star" style="font-size:13px;" aria-hidden="true"></i></button>
-          <button class="icon-btn" onclick="copyHist(${e.id})" aria-label="Copy"><i class="ti ti-copy" style="font-size:13px;" aria-hidden="true"></i></button>
-          <button class="icon-btn" onclick="dlHist(${e.id})" aria-label="Download"><i class="ti ti-download" style="font-size:13px;" aria-hidden="true"></i></button>
-          <button class="icon-btn ibdanger" onclick="delHist(${e.id})" aria-label="Delete"><i class="ti ti-trash" style="font-size:13px;" aria-hidden="true"></i></button>
-          <i class="ti ti-chevron-down" style="font-size:13px;color:rgba(255,255,255,0.24);transition:transform 0.2s;${expandedHistId===e.id?'transform:rotate(180deg)':''}" aria-hidden="true"></i>
+        <div class="h-actions" onclick="event.stopPropagation()">
+          <button class="ico-btn ${e.starred?'ib-star':''}" onclick="toggleStar(${e.id})"><i class="ti ti-star" style="font-size:13px;"></i></button>
+          <button class="ico-btn" onclick="cpHist(${e.id})"><i class="ti ti-copy" style="font-size:13px;"></i></button>
+          <button class="ico-btn" onclick="dlHist(${e.id})"><i class="ti ti-download" style="font-size:13px;"></i></button>
+          <button class="ico-btn ib-danger" onclick="delHist(${e.id})"><i class="ti ti-trash" style="font-size:13px;"></i></button>
+          <i class="ti ti-chevron-down" style="font-size:13px;color:var(--dim);transition:transform 0.25s;${expandedHistId===e.id?'transform:rotate(180deg)':''}"></i>
         </div>
       </div>
-      <div class="hc-expanded">
+      <div class="h-exp">
         <div class="sql-pre">${hl(e.sql)}</div>
-        <div class="hce-actions">
-          <button class="hcea-btn hcea-primary" onclick="reuseQuery(${e.id})"><i class="ti ti-player-play" style="font-size:12px;" aria-hidden="true"></i> Reuse in generator</button>
-          <button class="hcea-btn" onclick="copyHist(${e.id})"><i class="ti ti-copy" style="font-size:12px;" aria-hidden="true"></i> Copy SQL</button>
-          <button class="hcea-btn" onclick="dlHist(${e.id})"><i class="ti ti-download" style="font-size:12px;" aria-hidden="true"></i> Export .sql</button>
+        <div class="h-exp-acts">
+          <button class="hea-btn hea-primary" onclick="reuseQ(${e.id})"><i class="ti ti-player-play" style="font-size:12px;"></i> Reuse in generator</button>
+          <button class="hea-btn" onclick="cpHist(${e.id})"><i class="ti ti-copy" style="font-size:12px;"></i> Copy SQL</button>
+          <button class="hea-btn" onclick="dlHist(${e.id})"><i class="ti ti-download" style="font-size:12px;"></i> Export .sql</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
+function toggleHist(id){expandedHistId=expandedHistId===id?null:id;renderHistory();}
+function toggleStar(id){const e=queryHistory.find(x=>x.id===id);if(e){e.starred=!e.starred;renderHistory();}}
+function cpHist(id){const e=queryHistory.find(x=>x.id===id);if(e)navigator.clipboard.writeText(e.sql).then(()=>showToast('Copied!'));}
+function dlHist(id){const e=queryHistory.find(x=>x.id===id);if(!e)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([e.sql],{type:'text/plain'}));a.download=`query_${id}.sql`;a.click();}
+function delHist(id){queryHistory=queryHistory.filter(x=>x.id!==id);if(expandedHistId===id)expandedHistId=null;renderHistory();}
+function clearHistory(){if(confirm('Clear all history?')){queryHistory=[];expandedHistId=null;renderHistory();}}
+function reuseQ(id){const e=queryHistory.find(x=>x.id===id);if(!e)return;document.getElementById('genPrompt').value=e.prompt;navigate('generator');}
 
-function toggleHist(id)  { expandedHistId = expandedHistId===id ? null : id; renderHistory(); }
-function toggleStar(id)  { const e=queryHistory.find(x=>x.id===id); if(e){e.starred=!e.starred; renderHistory();} }
-function copyHist(id)    { const e=queryHistory.find(x=>x.id===id); if(e) navigator.clipboard.writeText(e.sql).then(()=>showToast('Copied!')); }
-function dlHist(id)      { const e=queryHistory.find(x=>x.id===id); if(!e) return; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([e.sql],{type:'text/plain'})); a.download=`query_${id}.sql`; a.click(); }
-function delHist(id)     { queryHistory=queryHistory.filter(x=>x.id!==id); if(expandedHistId===id) expandedHistId=null; renderHistory(); }
-function clearHistory()  { if(confirm('Clear all history?')){ queryHistory=[]; expandedHistId=null; renderHistory(); } }
-function reuseQuery(id)  {
-  const e = queryHistory.find(x=>x.id===id); if(!e) return;
-  document.getElementById('genPrompt').value = e.prompt;
-  navigate('generator');
-}
-
-// ══════════════════════════
-//  LANDING TYPEWRITER
-// ══════════════════════════
-const phrases = [
-  'Show top 10 customers by revenue last 30 days',
-  'Find all orders where status is pending',
-  'Count users who signed up this week',
-  'Get average order value by country',
-];
-let pi=0, ci=0, del=false;
-const tel = document.getElementById('typed');
-function typeWriter() {
-  const phrase = phrases[pi];
-  if (!del) {
-    tel.textContent = phrase.slice(0, ci+1); ci++;
-    if (ci===phrase.length) { setTimeout(()=>{del=true;typeWriter();},2000); return; }
-  } else {
-    tel.textContent = phrase.slice(0, ci-1); ci--;
-    if (ci===0) { del=false; pi=(pi+1)%phrases.length; }
-  }
-  setTimeout(typeWriter, del?36:54);
+// ── Typewriter ──
+const phrases=['Show top 10 customers by revenue last 30 days','Find all orders where status is pending','Count users who signed up this week','Get average order value by country'];
+let pi=0,ci=0,del=false;
+const tel=document.getElementById('typed');
+function typeWriter(){
+  const phrase=phrases[pi];
+  if(!del){tel.textContent=phrase.slice(0,ci+1);ci++;if(ci===phrase.length){setTimeout(()=>{del=true;typeWriter();},2200);return;}}
+  else{tel.textContent=phrase.slice(0,ci-1);ci--;if(ci===0){del=false;pi=(pi+1)%phrases.length;}}
+  setTimeout(typeWriter,del?34:55);
 }
 typeWriter();
-
-// init
 renderSchema();
 navigate('landing');
 </script>
