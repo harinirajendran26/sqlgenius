@@ -9,7 +9,20 @@ load_dotenv()
 
 # Initialize the Groq client
 # This is like creating a phone connection to the Groq AI service
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+import os
+from dotenv import load_dotenv
+from groq import Groq
+
+load_dotenv()
+
+groq_key = os.environ.get("GROQ_API_KEY")
+
+print("GROQ KEY FOUND:", bool(groq_key))
+
+if not groq_key:
+    raise ValueError("GROQ_API_KEY not found!")
+
+client = Groq(api_key=groq_key)
 
 # Maximum number of times the agent will try to fix a broken query
 # before giving up. 3 is a good balance between thoroughness and speed.
