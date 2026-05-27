@@ -572,16 +572,29 @@ function parseSchema(){
 // ── API ──
 async function checkAPI() {
   try {
+    console.log("Checking API:", `${API}/docs`);
+
     const r = await fetch(`${API}/docs`);
+
+    console.log("Response:", r);
 
     if (r.ok) {
       document.getElementById('apiDot').className = 'api-dot online';
       document.getElementById('apiTxt').textContent = 'API online';
-      loadSchema();
+
+      try {
+        await loadSchema();
+      } catch (e) {
+        console.error("loadSchema failed:", e);
+      }
+
     } else {
-      throw new Error();
+      throw new Error(`Status: ${r.status}`);
     }
-  } catch {
+
+  } catch (err) {
+    console.error("API check failed:", err);
+
     document.getElementById('apiDot').className = 'api-dot offline';
     document.getElementById('apiTxt').textContent = 'API offline';
   }
