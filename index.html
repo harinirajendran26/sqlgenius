@@ -572,7 +572,7 @@ function parseSchema(){
 // ── API ──
 async function checkAPI() {
   try {
-    const r = await fetch(`https://${API}/docs`);
+    const r = await fetch(`${API}/docs`);
 
     if (r.ok) {
       document.getElementById('apiDot').className = 'api-dot online';
