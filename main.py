@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from database import get_schema, run_query
 from schema_linker import link_schema, format_schema_for_prompt
 from agent import run_agent
-from fastapi.middleware.cors import CORSMiddleware
 
 # ── Create the FastAPI app ──────────────────────────────────────────
 # FastAPI() creates your web server instance
@@ -14,13 +13,7 @@ app = FastAPI(
     description="Agentic Text-to-SQL system with self-correction",
     version="1.0.0"
 )
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 # ── CORS Middleware ─────────────────────────────────────────────────
 # CORS = Cross-Origin Resource Sharing
 # 
