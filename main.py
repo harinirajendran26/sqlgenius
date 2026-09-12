@@ -220,7 +220,7 @@ Respond ONLY with valid JSON, no markdown:
 {{"sql":"the full SQL query","explanation":[{{"clause":"SELECT","explanation":"..."}},{{"clause":"FROM","explanation":"..."}},{{"clause":"GROUP BY","explanation":"..."}}]}}"""
     try:
         res = client.chat.completions.create(
-            model="llama3-70b-8192", temperature=0.1, max_tokens=800,
+            model="llama-3.3-70b-versatile", temperature=0.1, max_tokens=800,
             messages=[
                 {"role":"system","content":"You are a SQL expert. Always respond with valid JSON only, no markdown, no code fences."},
                 {"role":"user","content":prompt}
